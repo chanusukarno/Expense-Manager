@@ -1,0 +1,24 @@
+<ion-modal-view>
+    <ion-header-bar class="bar bar-header bar-positive">
+        <h1 class="title uppercase">Login</h1>
+        <button class="button button-clear button-primary" ng-click="loginModal.hide()">Cancel</button>
+    </ion-header-bar>
+    <ion-content>
+        <div class="list">
+            <label class="item item-input">
+                <span class="input-label">Email</span>
+                <input ng-model="user.email" type="email">
+            </label>
+            <label class="item item-input">
+                <span class="input-label">Password</span>
+                <input ng-model="user.password" type="password">
+            </label>
+            <div class="padding">
+                <button class="button button-full button-positive uppercase" ng-click="loginUser(user)">Login</button>
+                <p class="text-right padding-top">
+                    <a class="forgot-pass positive" href="#/forgot-password">Forgot password?</a>
+                </p>
+            </div>
+        </div>
+    </ion-content>
+</ion-modal-view>

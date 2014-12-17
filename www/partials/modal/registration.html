@@ -1,0 +1,26 @@
+<ion-modal-view>
+    <ion-header-bar class="bar bar-header bar-positive uppercase">
+        <h1 class="title">Register</h1>
+        <button class="button button-clear button-primary" ng-click="regModal.hide()">Cancel</button>
+    </ion-header-bar>
+    <ion-content>
+        <div class="list">
+            <label class="item item-input">
+                <span class="input-label">Display Name</span>
+                <input ng-model="newUser.displayName" type="text">
+            </label>
+            <label class="item item-input">
+                <span class="input-label">Email</span>
+                <input ng-model="newUser.email" type="email">
+            </label>
+            <label class="item item-input">
+                <span class="input-label">Password</span>
+                <input id="password" ng-model="newUser.password" type="password">
+            </label>
+            <ion-checkbox class="unmask"  ng-model="isChecked" ng-change="unmask('#password')">{{maskLabel}}</ion-checkbox>
+            <div class="padding">
+                <button class="button button-full button-positive uppercase" ng-click="registerUser(newUser)">Register</button>
+            </div>
+        </div>
+    </ion-content>
+</ion-modal-view>
