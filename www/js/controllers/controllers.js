@@ -1,16 +1,6 @@
-/* 
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 var emApp = angular.module('emApp.controllers', []);
 
 emApp.controller('welcomeCtrl', function($scope, $state, $ionicModal) {
-
-    $scope.signIn = function(user) {
-        console.log('Sign-In', user);
-        $state.go('tabs.home');
-    };
 
     // Login Modal
     $ionicModal.fromTemplateUrl('partials/modal/login.html', {
@@ -43,15 +33,59 @@ emApp.controller('welcomeCtrl', function($scope, $state, $ionicModal) {
     //
     $scope.loginUser = function(user) {
         console.log(angular.toJson(user));
+        $state.go('dashboard.expenses');
+        $scope.loginModal.hide();
     };
 
     $scope.registerUser = function(newUser) {
         console.log(angular.toJson(newUser));
+        $state.go('dashboard.expenses');
+        $scope.regModal.hide();
     };
 
 
 });
 
-emApp.controller('HomeTabCtrl', function($scope, $ionicModal) {
+emApp.controller('ExpensesCtrl', function($scope, emAPI, $ionicModal, $filter) {
+
+    // Add expense Modal
+    $ionicModal.fromTemplateUrl('partials/modal/addExpense.html', {
+        scope: $scope,
+        focusFirstInput: true
+    }).then(function(modal) {
+        $scope.addExpenseModal = modal;
+    });
+
+    //
+    $scope.addExpense = function(expense) {
+        console.log(angular.toJson(expense));
+        emAPI.addExpense(expense);
+        loadExpenses();
+        $scope.addExpenseModal.hide();
+        initNewExpense();
+    };
+
+    // init new expense with current date
+    function initNewExpense() {
+        $scope.expense = {};
+        $scope.expense.date = new Date();
+        $scope.expense.date.setMilliseconds(0);
+    }
+
+    // Load expenses:
+    function loadExpenses() {
+        emAPI.expenses().then(function(response) {
+            console.log("emAPI expenses SUCCESS: " + angular.toJson(response));
+            $scope.expenses = $filter('orderBy')(response, function(value) {
+                return new Date(value.date);
+            }, true);
+        }, function(error) {
+            console.log("emAPI expenses ERROR: " + error);
+            $scope.error = true;
+        });
+    }
+
+    loadExpenses();
+    initNewExpense();
 
 });

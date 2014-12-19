@@ -1,7 +1,10 @@
 /* Empty. Add your own CSS if you like */
+body {
+    font-family: 'Roboto', serif;
+}
 
 #welcome-view {
-    background: url(../img/2.png) no-repeat center center fixed; 
+    background: url(../img/welcome_bg.png) no-repeat center center fixed; 
     -webkit-background-size: cover;
     -moz-background-size: cover;
     background-size: cover;
@@ -51,6 +54,122 @@ hr {
     color: white;
 }
 
-.forgot-pass {
+.em-small {
+    font-size: 16px;
     text-decoration: none;
+}
+
+#menu-item-profile {
+    padding: 10px;
+}
+
+#menu-item-profile img {
+    height: 50px;
+    width: 50px;
+    float: left;
+}
+
+#menu-item-profile .titles {
+    height: 50px;
+    display: table-cell;
+    vertical-align: middle;
+    padding-left: 20px;
+}
+
+.float-button {
+    -webkit-border-radius: 50%;
+    -moz-border-radius: 50%;
+    border-radius: 50%;
+    padding: 25px;
+    font-size: 24px;
+    background: #62bdbc;
+    position: fixed;
+    bottom: 20px; /* Adjust to where you want it */
+    right: 20px; /* Adjust to where you want it */
+    z-index: 9999;
+    -webkit-box-shadow: 2px 2px 5px 2px rgba(112,112,112,0.2);
+    -moz-box-shadow: 2px 2px 5px 2px rgba(112,112,112,0.2);
+    box-shadow: 2px 2px 5px 2px rgba(112,112,112,0.2);
+}
+
+.float-button .height_fix {
+    margin-top: 100%;
+}
+
+.float-button .content {
+    position: absolute;
+    left: 0;
+    top: 50%;
+    height: 100%;
+    width: 100%;
+    text-align: center;
+    margin-top: -12px; /* Note, this must be half the font size */
+    color: #fff;
+}
+
+.item .amount {
+    font-size: 26px;
+    float: right;
+    height: 50px;
+    line-height: 52px;
+    width: 72px;
+    font-weight: lighter;
+    color: mediumturquoise;
+
+    text-align: right;
+    /*    text-shadow: 1px 1px 1px lightgray;*/
+}
+
+.item .currency {
+    font-size: 16px;
+    float: right;
+    height: 50px;
+    line-height: 55px;
+    padding-left: 5px;
+    font-weight: 300;
+    color: darkgray;
+
+    /*    text-shadow: 1px 1px 1px lightgray;*/
+}
+
+.item .title {
+    color: #424242;
+}
+
+.item .subtitle,  .item .notes{
+    color: #A4A4A4;
+    padding-top: 5px;
+}
+
+.em-item .item-content {
+    padding: 10px 20px 10px 15px;
+}
+
+.item .notes {
+    font-size: 12px;
+}
+
+.button.button-icon.input-button {
+    position: absolute;
+    right: 0;
+    top: 5px;
+    color: #bbb;
+}
+
+.filter {
+    padding: 2px;
+    font-size: 15px !important;
+}
+
+.em-results {
+    height: 32px;
+    line-height: 20px;
+    padding: 5px;
+    text-align: center;
+    font-size: 14px;
+}
+
+.bar .title {
+    text-align: center !important;
+    
 }

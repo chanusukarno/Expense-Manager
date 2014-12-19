@@ -1,0 +1,38 @@
+[
+    {
+        "id": "1",
+        "title": "Lunch at cisco",
+        "amount": "120",
+        "currency": "&#8377;",
+        "date": "2014-12-19 20:14:07",
+        "category": "Food",
+        "notes": ""
+    },
+    {
+        "id": "2",
+        "title": "Movie Linga",
+        "amount": "200",
+        "currency": "&#8377;",
+        "date": "2014-12-12 06:14:07",
+        "category": "Entertainment",
+        "notes": "Went to movie with Friends! Movie was good but Ticket price was bit High for the First day."
+    },
+    {
+        "id": "3",
+        "title": "Ordered Pendrive from Flipkart",
+        "amount": "690",
+        "currency": "$",
+        "date": "2014-12-17 03:14:07",
+        "category": "Shopping",
+        "notes": ""
+    },
+    {
+        "id": "4",
+        "title": "Grocery at A2Z store",
+        "amount": "540",
+        "currency": "&#8377;",
+        "date": "2014-12-19 19:14:07",
+        "category": "Grocery",
+        "notes": "1. Soaps 2. Shampoo 3. Conditioner 4. Hair gel"
+    }
+]

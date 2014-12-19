@@ -1,0 +1,53 @@
+<ion-view view-title="Expenses">
+    <ion-nav-buttons side="right">
+        <button class="button button-icon ion-ios7-sort"></button>
+    </ion-nav-buttons>
+    <ion-header-bar class="bar-clear bar-subheader">
+        <input class="filter" type="search"
+               placeholder="Filter contacts..."
+               ng-model="query"
+               ng-focus="searchFocused = true"
+               ng-blur="searchFocused = false"
+               ng-change="scrollTop()">
+        <button class="button button-icon ion-ios7-search-strong input-button"
+                ng-class="query.length > 0 ? 'ion-close-circled' : 'ion-ios7-search-strong'"
+                ng-click="query = ''">
+        </button>
+
+    </ion-header-bar>
+
+    <ion-content class="has-header">
+        <ion-refresher on-refresh="refresh()">
+        </ion-refresher>
+        <ion-item class="em-results em-small text-center" ng-if="query.length > 0">{{filtered.length}} Results found</ion-item>
+
+        <ion-list>
+            <ion-item class="em-item" ng-repeat="expense in filtered = (expenses| filter:query)">
+                <span class="currency" ng-bind-html="expense.currency | html"></span>
+                <span class="amount">{{expense.amount| numshort}}</span>
+                <h2 class="title">{{expense.title}}</h2>
+                <p class="subtitle">
+                    <span>{{expense.category}} &nbsp;|&nbsp;</span>
+                    <span data-am-time-ago="expense.date"></span>
+                </p>
+                <p class="notes">{{expense.notes}}</p>
+
+                <!-- slide options -->
+                <ion-option-button class="button-positive" ng-click="share(item)">Edit</ion-option-button>
+                <ion-option-button class="button-assertive" ng-click="edit(item)">Delete</ion-option-button>
+
+            </ion-item>
+            <ion-item class="padding text-center" ng-if="!expenses && error">
+                <h3>Request Failed</h3>
+                <small>Check that you are online. If you are, the server may be offline.</small>
+            </ion-item>
+        </ion-list>
+    </ion-content>
+    <a ng-click="addExpenseModal.show()" class="float-button">
+        <span class="height-fix">
+            <div class="content">
+                <i class="ion-plus"></i>
+            </div>
+        </span>
+    </a>
+</ion-view>
