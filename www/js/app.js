@@ -4,8 +4,8 @@
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
 var emApp = angular.module('emApp', ['emApp.controllers', 'emApp.services', 'emApp.filters', 'angularMoment', 'ionic'])
-        .run(function($ionicPlatform) {
-            $ionicPlatform.ready(function() {
+        .run(function ($ionicPlatform) {
+            $ionicPlatform.ready(function () {
                 // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
                 // for form inputs)
                 if (window.cordova && window.cordova.plugins.Keyboard) {
@@ -17,7 +17,7 @@ var emApp = angular.module('emApp', ['emApp.controllers', 'emApp.services', 'emA
             });
         });
 
-emApp.config(function($stateProvider, $urlRouterProvider) {
+emApp.config(function ($stateProvider, $urlRouterProvider) {
 
     $stateProvider
             .state('welcome', {
@@ -34,12 +34,21 @@ emApp.config(function($stateProvider, $urlRouterProvider) {
 //                url: "/forgot-password",
 //                templateUrl: "forgot-password.html"
 //            })
-            .state('dashboard.expenses', {
-                url: "/expenses",
+            .state('dashboard.expensesMonthly', {
+                url: "/expensesMonthly",
                 views: {
                     'menuContent': {
-                        templateUrl: "partials/expenses.html",
-                        controller: "ExpensesCtrl"
+                        templateUrl: "partials/expensesMonthly.html",
+                        controller: "ExpensesMonthlyCtrl"
+                    }
+                }
+            })
+            .state('dashboard.expensesAll', {
+                url: "/expensesAll",
+                views: {
+                    'menuContent': {
+                        templateUrl: "partials/expensesAll.html",
+                        controller: "ExpensesAllCtrl"
                     }
                 }
             })

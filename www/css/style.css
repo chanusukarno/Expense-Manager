@@ -60,7 +60,7 @@ hr {
 }
 
 #menu-item-profile {
-    padding: 10px;
+    padding: 15px;
 }
 
 #menu-item-profile img {
@@ -73,7 +73,12 @@ hr {
     height: 50px;
     display: table-cell;
     vertical-align: middle;
-    padding-left: 20px;
+    padding-left: 18px;
+}
+
+#menu-item-profile .em-subtitle {
+    font-size: 14px;
+    color: darkgrey;
 }
 
 .float-button {
@@ -157,7 +162,7 @@ hr {
 }
 
 .filter {
-    padding: 2px;
+    padding: 0 10px 0 10px !important;
     font-size: 15px !important;
 }
 
@@ -170,6 +175,30 @@ hr {
 }
 
 .bar .title {
+    font-weight: bold;
     text-align: center !important;
-    
+
+}
+
+.has-cal {
+    top: 370px;
+}
+
+#picker_date {
+    background: transparent;
+    height: 0;
+    padding: 0;
+}
+
+.cal-icon {
+    padding: 5px;
+}
+
+.title-footer {
+    font-size: 14px !important;
+    font-weight: lighter !important;
+}
+
+.em-icon {
+    font-size: 36px !important;
 }

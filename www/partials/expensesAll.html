@@ -1,15 +1,15 @@
-<ion-view view-title="Expenses">
+<ion-view view-title="All Expenses">
     <ion-nav-buttons side="right">
-        <button class="button button-icon ion-ios7-sort"></button>
+        <button class="button button-icon"></button>
     </ion-nav-buttons>
     <ion-header-bar class="bar-clear bar-subheader">
         <input class="filter" type="search"
-               placeholder="Filter contacts..."
+               placeholder="Search expenses..."
                ng-model="query"
                ng-focus="searchFocused = true"
                ng-blur="searchFocused = false"
                ng-change="scrollTop()">
-        <button class="button button-icon ion-ios7-search-strong input-button"
+        <button class="button button-icon ion-close-circled input-button"
                 ng-class="query.length > 0 ? 'ion-close-circled' : 'ion-ios7-search-strong'"
                 ng-click="query = ''">
         </button>
@@ -43,7 +43,7 @@
             </ion-item>
         </ion-list>
     </ion-content>
-    <a ng-click="addExpenseModal.show()" class="float-button">
+    <a ng-click="addExpenseModal.show(); initNewExpense()" class="float-button">
         <span class="height-fix">
             <div class="content">
                 <i class="ion-plus"></i>

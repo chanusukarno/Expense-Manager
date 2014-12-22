@@ -5,27 +5,42 @@
             <ion-nav-buttons side="left">
                 <button class="button button-icon ion-navicon" menu-toggle="left" ng-hide="$exposeAside.active"></button>
             </ion-nav-buttons>
+            <ion-nav-buttons side="right">
+                <button class="button button-icon"></button>
+            </ion-nav-buttons>
         </ion-nav-bar>
         <!-- menu content view holder -->
         <ion-nav-view name="menuContent"></ion-nav-view>
     </ion-side-menu-content>
 
     <ion-side-menu expose-aside-when="large">
+        <ion-header-bar class="bar-header bar-positive">
+            <div class="title uppercase">Expense Manager</div>
+        </ion-header-bar>
         <ion-content>
             <div class="list">
                 <a href="#/dashboard/profile" id="menu-item-profile" class="item" menu-close>
                     <img src="img/ionic.png">
                     <div class="titles">
                         <div>Display Name</div>
-                        <div>user@gmail.com</div>
+                        <div class="em-subtitle">user@gmail.com</div>
                     </div>
                 </a>
-                <a href="#/dashboard/expenses" class="item" menu-close>Expenses</a>
-                <a href="#/dashboard/settings" class="item" menu-close>Settings</a>
-                <a href="#/dashboard/reports" class="item" menu-close>Reports</a>
-                <a href="#/dashboard/help" class="item" menu-close>Help</a>
+                <a href="#/dashboard/expensesMonthly" class="item item-icon-left" menu-close>
+                    <i class="icon ion-ios7-calendar-outline"></i>Monthly Expenses</a>
+                <a href="#/dashboard/expensesAll" class="item item-icon-left" menu-close>
+                    <i class="icon ion-ios7-folder-outline em-icon"></i>All Expenses</a>
+                <a href="#/dashboard/settings" class="item item-icon-left" menu-close>
+                    <i class="icon ion-ios7-gear-outline em-icon"></i>Settings</a>
+                <a href="#/dashboard/reports" class="item item-icon-left" menu-close>
+                    <i class="icon ion-ios7-pie-outline"></i>Reports</a>
+                <a href="#/dashboard/help" class="item item-icon-left" menu-close>
+                    <i class="icon ion-ios7-help-outline"></i>Help</a>
             </div>
         </ion-content>
+        <ion-footer-bar  class="bar title bar-light center-block">
+            <div class="title title-footer">Techie Dreams &#9825; INDIA</div>
+        </ion-footer-bar>
     </ion-side-menu>
 
 </ion-side-menus>
