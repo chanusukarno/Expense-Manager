@@ -1,8 +1,12 @@
 <ion-modal-view>
     <ion-header-bar class="bar bar-header bar-positive">
-        <button class="button button-clear button-primary" ng-click="addExpenseModal.hide();">Cancel</button>
-        <div class="title uppercase">Add Expense</div>
-        <button class="button button-clear button-primary" ng-click="addExpense(expense);">Add</button>
+        <button class="button button-clear button-primary" ng-click="addBorrowLendModal.hide();">Cancel</button>
+        <div class="title uppercase" ng-click="toggleAdd = !toggleAdd">
+            <span ng-class="toggleAdd ? 'light' : 'em-text-disable'">Borrowed</span>
+            <span class="em-padding-header">/</span>
+            <span ng-class="toggleAdd ? 'em-text-disable' : 'light'">Lent</span>
+        </div>
+        <button class="button button-clear button-primary" ng-click="addBorrowLendModal.hide();">Add</button>
     </ion-header-bar>
     <ion-content>
         <div class="list">

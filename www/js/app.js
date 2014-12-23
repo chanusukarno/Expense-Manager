@@ -52,6 +52,24 @@ emApp.config(function ($stateProvider, $urlRouterProvider) {
                     }
                 }
             })
+            .state('dashboard.expensesRecurring', {
+                url: "/expensesRecurring",
+                views: {
+                    'menuContent': {
+                        templateUrl: "partials/expensesRecurring.html",
+                        controller: "expensesRecurringCtrl"
+                    }
+                }
+            })
+            .state('dashboard.borrowsLends', {
+                url: "/borrowsLends",
+                views: {
+                    'menuContent': {
+                        templateUrl: "partials/borrowsLends.html",
+                        controller: "borrowsLendsCtrl"
+                    }
+                }
+            })
             .state('dashboard.profile', {
                 url: "/profile",
                 views: {

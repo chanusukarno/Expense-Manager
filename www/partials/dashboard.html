@@ -18,23 +18,28 @@
             <div class="title uppercase">Expense Manager</div>
         </ion-header-bar>
         <ion-content>
-            <div class="list">
-                <a href="#/dashboard/profile" id="menu-item-profile" class="item" menu-close>
+            <div class="list padding-left padding-right">
+                <a href="#/dashboard/profile" id="menu-item-profile" class="item em-menu" menu-close>
                     <img src="img/ionic.png">
                     <div class="titles">
                         <div>Display Name</div>
                         <div class="em-subtitle">user@gmail.com</div>
                     </div>
                 </a>
-                <a href="#/dashboard/expensesMonthly" class="item item-icon-left" menu-close>
-                    <i class="icon ion-ios7-calendar-outline"></i>Monthly Expenses</a>
-                <a href="#/dashboard/expensesAll" class="item item-icon-left" menu-close>
+                <a href="#/dashboard/expensesAll" class="item em-menu item-icon-left" menu-close>
                     <i class="icon ion-ios7-folder-outline em-icon"></i>All Expenses</a>
-                <a href="#/dashboard/settings" class="item item-icon-left" menu-close>
+                <a href="#/dashboard/expensesMonthly" class="item em-menu item-icon-left" menu-close>
+                    <i class="icon ion-ios7-calendar-outline"></i>Monthly Expenses</a>
+                <a href="#/dashboard/expensesRecurring" class="item em-menu item-icon-left" menu-close>
+                    <i class="icon ion-ios7-loop"></i>Recurring Expenses</a>
+                <a href="#/dashboard/borrowsLends" class="item em-menu item-icon-left" menu-close>
+                    <i class="icon ion-ios7-upload-outline"></i>
+                    <i class="icon ion-ios7-download-outline"></i>Borrows/Lends</a>
+                <a href="#/dashboard/settings" class="item em-menu item-icon-left" menu-close>
                     <i class="icon ion-ios7-gear-outline em-icon"></i>Settings</a>
-                <a href="#/dashboard/reports" class="item item-icon-left" menu-close>
+                <a href="#/dashboard/reports" class="item em-menu item-icon-left" menu-close>
                     <i class="icon ion-ios7-pie-outline"></i>Reports</a>
-                <a href="#/dashboard/help" class="item item-icon-left" menu-close>
+                <a href="#/dashboard/help" class="item em-menu item-icon-left" menu-close>
                     <i class="icon ion-ios7-help-outline"></i>Help</a>
             </div>
         </ion-content>

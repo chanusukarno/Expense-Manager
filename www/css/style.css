@@ -41,9 +41,9 @@ hr {
 }
 
 #footer {
-    background: #666666;
+    background: #5A5A5A;
     opacity: 0.4;
-    color: #F5F5F5;
+    color: #fff;
 }
 
 .uppercase {
@@ -201,4 +201,25 @@ hr {
 
 .em-icon {
     font-size: 36px !important;
+}
+
+.em-text-disable {
+    color: lightgrey;
+}
+
+.em-text-enable {
+    color: initial;
+}
+
+.em-padding-header {
+    padding: 2px;
+}
+
+.em-menu {
+    border-width: 1px 0 1px 0 !important;
+    border-color: rgba(202, 202, 202, 0.25);
+}
+
+.item.activated, item.active {
+    background: #C0EBEB !important;
 }

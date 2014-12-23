@@ -16,14 +16,14 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal) {
         $scope.regModal = regModal;
     });
     //
-    $scope.maskLabel = "Unmask password";
+    $scope.maskLabel = "Show password";
     $scope.unmask = function (id) {
         if ($(id).attr('type') === 'password') {
             changeType($(id), 'text');
-            $scope.maskLabel = "Mask password";
+            // $scope.maskLabel = "Mask password";
         } else {
             changeType($(id), 'password');
-            $scope.maskLabel = "Unmask password";
+            // $scope.maskLabel = "Unmask password";
         }
     };
     //
@@ -96,6 +96,8 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $f
     $scope.selectedDate = new Date();
     loadExpenses();
 });
+
+
 emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filter) {
 
     // Add expense Modal
@@ -132,4 +134,46 @@ emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filte
     }
 
     loadExpenses();
+});
+
+// Borrows/Lends
+emApp.controller('borrowsLendsCtrl', function ($scope, emAPI, $ionicModal, $filter) {
+
+    $scope.showLends = true;
+    $scope.showBorrows = true;
+
+    $scope.toggleBorrows = function (showLends) {
+        if (!showLends) {
+            return;
+        } else {
+            $scope.showBorrows = !$scope.showBorrows;
+        }
+    };
+
+    $scope.toggleLends = function (showBorrows) {
+        if (!showBorrows) {
+            return;
+        } else {
+            $scope.showLends = !$scope.showLends;
+        }
+    };
+
+    // Add borrow/lend Modal
+    $ionicModal.fromTemplateUrl('partials/modal/addBorrowLend.html', {
+        scope: $scope,
+        focusFirstInput: true
+    }).then(function (modal) {
+        $scope.addBorrowLendModal = modal;
+    });
+
+    $scope.initNewBorrowLend = function () {
+
+    };
+
+});
+
+// Recurring Expenses
+emApp.controller('expensesRecurringCtrl', function ($scope, emAPI, $ionicModal, $filter) {
+
+
 });
