@@ -177,3 +177,158 @@ emApp.controller('expensesRecurringCtrl', function ($scope, emAPI, $ionicModal, 
 
 
 });
+
+// Settings
+emApp.controller('settingsCtrl', function ($scope, emAPI, $ionicPopup, $ionicModal, $ionicListDelegate, $state) {
+
+// Logout confirmation dialog
+    $scope.showConfirm = function () {
+        var confirmLogout = $ionicPopup.confirm({
+            title: 'Log Out of ExpenseManager?',
+            template: 'You can always access your content by signing back in.'
+        });
+        confirmLogout.then(function (res) {
+            if (res) {
+                console.log('You are sure');
+                $state.go('welcome');
+            } else {
+                console.log('You are not sure');
+            }
+        });
+    };
+
+    $scope.showLogoutPopup = function () {
+        $scope.data = {};
+        var myPopup = $ionicPopup.show({
+            template: 'You can always access your content by signing back in.',
+            title: 'Log Out of ExpenseManager?',
+            scope: $scope,
+            buttons: [
+                {text: 'Cancel'},
+                {
+                    text: '<b>Log Out</b>',
+                    type: 'button-positive',
+                    onTap: function (e) {
+                        $state.go('welcome');
+                        return;
+                    }
+                }
+            ]
+        });
+
+        myPopup.then(function (res) {
+            console.log('Tapped!', res);
+        });
+//        $timeout(function () {
+//            myPopup.close(); //close the popup after 3 seconds for some reason
+//        }, 3000);
+    };
+
+
+    // Manage Categories Modal
+    $ionicModal.fromTemplateUrl('partials/modal/categories.html', {
+        scope: $scope,
+        focusFirstInput: true
+    }).then(function (modal) {
+        $scope.categoriesModal = modal;
+    });
+
+    // categories controller
+    $scope.data = {
+        showDelete: false
+    };
+
+    $scope.moveItem = function (item, fromIndex, toIndex) {
+        $scope.items.splice(fromIndex, 1);
+        $scope.items.splice(toIndex, 0, item);
+    };
+
+    $scope.items = [
+        {id: 0, title: "Food"},
+        {id: 1, title: "Snacks"},
+        {id: 2, title: "Grocery"},
+        {id: 3, title: "Entertainment"},
+        {id: 4, title: "Shopping"},
+        {id: 5, title: "Vehicle"},
+        {id: 6, title: "Cigarettes"},
+        {id: 7, title: "Alchohol"},
+        {id: 8, title: "Donation"},
+        {id: 9, title: "Shopping"},
+        {id: 10, title: "Cosmetics"},
+        {id: 11, title: "Parties"},
+        {id: 12, title: "Rental"}
+    ];
+
+    // category edit or add
+    $scope.showCategoryEditPopup = function (type, item) {
+
+        var title, btnText;
+
+        if (type === 'add') {
+            title = "Add Category";
+            btnText = "Add";
+            $scope.data = {};
+        } else {
+            title = "Edit Category";
+            btnText = "Save";
+            $scope.data = angular.copy(item);
+        }
+
+        // An elaborate, custom popup
+        var myPopup = $ionicPopup.show({
+            template: '<input type="text" ng-model="data.title">',
+            title: title,
+            //subTitle: 'Please use normal things',
+            scope: $scope,
+            buttons: [
+                {text: 'Cancel'},
+                {
+                    text: '<b>' + btnText + '</b>',
+                    type: 'button-positive',
+                    onTap: function (e) {
+                        if (!$scope.data.title) {
+                            e.preventDefault();
+                        } else {
+                            if (type === 'add') {
+                                $scope.items.push({id: 0, title: $scope.data.title});
+                            } else {
+                                $scope.items[$scope.items.indexOf(item)].title = $scope.data.title;
+                            }
+                            return;
+                        }
+                    }
+                }
+            ]
+        });
+        myPopup.then(function (res) {
+            console.log('Tapped!', res);
+            $ionicListDelegate.closeOptionButtons();
+        });
+    };
+
+    // Delete Category
+    $scope.showCategoryDeletePopup = function (item) {
+
+        // An elaborate, custom popup
+        var myPopup = $ionicPopup.show({
+            template: item.title,
+            title: 'Delete Category?',
+            //subTitle: 'Please use normal things',
+            buttons: [
+                {text: 'Cancel'},
+                {
+                    text: '<b>Delete</b>',
+                    type: 'button-assertive',
+                    onTap: function () {
+                        return $scope.items.splice($scope.items.indexOf(item), 1);
+                    }
+                }
+            ]
+        });
+        myPopup.then(function (res) {
+            console.log('Tapped!', res);
+            $ionicListDelegate.closeOptionButtons();
+        });
+    };
+
+});

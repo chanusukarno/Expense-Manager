@@ -1,7 +1,8 @@
 <ion-modal-view>
     <ion-header-bar class="bar bar-header bar-positive">
-        <h1 class="title uppercase">Login</h1>
         <button class="button button-clear button-primary" ng-click="loginModal.hide()">Cancel</button>
+        <h1 class="title uppercase">Login</h1>
+        <button class="button button-clear button-primary" ng-click="loginUser(user)">Login</button>
     </ion-header-bar>
     <ion-content>
         <div class="list">
@@ -14,7 +15,7 @@
                 <input ng-model="user.password" type="password">
             </label>
             <div class="padding">
-                <button class="button button-full button-positive uppercase" ng-click="loginUser(user)">Login</button>
+                <!-- <button class="button button-full button-positive uppercase" ng-click="loginUser(user)">Login</button> -->
                 <p class="text-right padding-top">
                     <a class="em-small positive" href="#/forgot-password">Forgot password?</a>
                 </p>

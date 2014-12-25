@@ -82,7 +82,8 @@ emApp.config(function ($stateProvider, $urlRouterProvider) {
                 url: "/settings",
                 views: {
                     'menuContent': {
-                        templateUrl: "partials/settings.html"
+                        templateUrl: "partials/settings.html",
+                        controller: "settingsCtrl"
                     }
                 }
             })

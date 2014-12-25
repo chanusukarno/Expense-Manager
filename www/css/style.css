@@ -223,3 +223,37 @@ hr {
 .item.activated, item.active {
     background: #C0EBEB !important;
 }
+
+#em-profile {
+    padding: 30px;
+    text-align: center;
+}
+
+#em-profile img {
+    height: 75px;
+    width: 75px;
+}
+
+.em-gender .item-checkbox {
+    padding-left: 50px !important;
+    font-size: 14px;
+    border-width: 0;
+    padding: 10px 0px 10px 0px;
+    margin: 0px;
+}
+
+.em-footer-title {
+    font-weight: normal !important;
+}
+
+ion-popover-view.fit {
+    height: auto !important;
+}
+
+ion-popover-view.fit ion-content {
+    position: relative !important;
+}
+
+.platform-android ion-popover-view.fit {
+    margin-top: 10px !important;
+}

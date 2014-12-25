@@ -1,6 +1,39 @@
 <ion-view view-title="Profile">
-    <ion-content class="padding">
-        <p>Swipe to the right to reveal the left menu.</p>
-        <p>(On desktop click and drag from left to right)</p>
+    <ion-content>
+        <div class="list">
+            <div id="em-profile" class="item" menu-close>
+                <img src="img/ionic.png">
+            </div>
+            <div class="list">
+                <label class="item item-input">
+                    <span class="input-label">Email</span>
+                    <input ng-model="expense.amount" type="text" placeholder="user@gmail.com">
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Display Name</span>
+                    <input ng-model="expense.title" type="text" placeholder="Chanu Sukarno">
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Country</span>
+                    <input ng-model="expense.title" type="text" placeholder="INDIA">
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Phone</span>
+                    <input ng-model="expense.title" type="text" placeholder="+91 8123595959">
+                </label>
+                <label class="item item-input">
+                    <span class="input-label">Birthday</span>
+                    <input ng-model="expense.title" type="date" placeholder="">
+                </label>
+                <label class="item item-input em-gender">
+                    <span class="input-label">Gender</span>
+                    <ion-checkbox class="em-gender-cb" ng-model="isMale" ng-change="isMale ? gender='male' : gender = 'female';
+                        isFemale = false" ng-checked="gender === 'male'">Male</ion-checkbox>
+                    <ion-checkbox class="em-gender-cb" ng-model="isFemale" ng-change="isFemale ? gender='female' : gender = 'male';
+                        isMale = false" ng-checked="gender === 'female'">Female</ion-checkbox>
+                </label>
+
+            </div>
+        </div>
     </ion-content>
 </ion-view>
