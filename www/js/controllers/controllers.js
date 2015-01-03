@@ -1,5 +1,5 @@
 var emApp = angular.module('emApp.controllers', []);
-emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal) {
+emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieStore) {
 
     // Login Modal
     $ionicModal.fromTemplateUrl('partials/modal/login.html', {
@@ -37,6 +37,73 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal) {
         $state.go('dashboard.expensesMonthly');
         $scope.regModal.hide();
     };
+
+    // SOCIAL LOGIN
+    // FB Login
+    $scope.fbLogin = function () {
+        FB.login(function (response) {
+            if (response.authResponse) {
+                getUserInfo();
+            } else {
+                console.log('User cancelled login or did not fully authorize.');
+            }
+        }, {scope: 'email,user_photos,user_videos'});
+
+        function getUserInfo() {
+            // get basic info
+            FB.api('/me', function (response) {
+                console.log('Facebook Login RESPONSE: ' + angular.toJson(response));
+                var userEmail = response.email;
+                // get profile picture
+                FB.api('/me/picture?type=normal', function (response) {
+                    console.log('Facebook Login RESPONSE: ' + response.data.url);
+                    // store data to DB and redirect to dashboard
+                    // store user email in cookie
+                    $cookieStore.put('userEmail', userEmail);
+                    $scope.$apply(function () {
+                        $state.go('dashboard.expensesMonthly');
+                    });
+                });
+            });
+        }
+    };
+    // END FB Login
+
+    // Google Plus Login
+    $scope.gplusLogin = function () {
+        var myParams = {
+            'clientid': '673925917245-6lmqmafbiiufbm069mbqvq2tidr5ts3i.apps.googleusercontent.com',
+            'cookiepolicy': 'single_host_origin',
+            'callback': loginCallback,
+            'approvalprompt': 'force',
+            'scope': 'https://www.googleapis.com/auth/plus.login https://www.googleapis.com/auth/plus.profile.emails.read'
+        };
+        gapi.auth.signIn(myParams);
+
+        function loginCallback(result) {
+            if (result['status']['signed_in']) {
+                var request = gapi.client.plus.people.get({'userId': 'me'});
+                request.execute(function (resp) {
+                    console.log('Google+ Login RESPONSE: ' + angular.toJson(resp));
+                    var userEmail;
+                    if (resp['emails']) {
+                        for (var i = 0; i < resp['emails'].length; i++) {
+                            if (resp['emails'][i]['type'] == 'account') {
+                                userEmail = resp['emails'][i]['value'];
+                            }
+                        }
+                    }
+                    // store data to DB and redirect to dashboard
+                    // store user email in cookie
+                    $cookieStore.put('userEmail', userEmail);
+                    $scope.$apply(function () {
+                        $state.go('dashboard.expensesMonthly');
+                    });
+                });
+            }
+        }
+    };
+    // END Google Plus Login
 });
 emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $filter, $ionicPopover) {
 
@@ -330,5 +397,31 @@ emApp.controller('settingsCtrl', function ($scope, emAPI, $ionicPopup, $ionicMod
             $ionicListDelegate.closeOptionButtons();
         });
     };
+
+});
+
+// Reports
+emApp.controller('reportsCtrl', function ($scope, emAPI, $ionicModal, $filter) {
+
+    var chart = c3.generate({
+        bindto: '#chartLine',
+        data: {
+            columns: [
+                ['data1', 30, 200, 100, 400, 150, 250],
+                ['data2', 50, 20, 10, 40, 15, 25]
+            ]
+        }
+    });
+
+    var chart = c3.generate({
+        bindto: '#chartDonut',
+        data: {
+            type: 'donut',
+            columns: [
+                ['data1', 30, 200, 100, 400, 150, 250],
+                ['data2', 50, 20, 10, 40, 15, 25]
+            ]
+        }
+    });
 
 });

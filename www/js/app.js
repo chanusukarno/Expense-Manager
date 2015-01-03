@@ -3,20 +3,38 @@
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
-var emApp = angular.module('emApp', ['emApp.controllers', 'emApp.services', 'emApp.filters', 'angularMoment', 'ionic'])
-        .run(function ($ionicPlatform) {
-            $ionicPlatform.ready(function () {
-                // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
-                // for form inputs)
-                if (window.cordova && window.cordova.plugins.Keyboard) {
-                    cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
-                }
-                if (window.StatusBar) {
-                    StatusBar.styleDefault();
-                }
-            });
-        });
+var emApp = angular.module('emApp', ['ngCookies', 'emApp.controllers', 'emApp.services', 'emApp.filters', 'angularMoment', 'ionic']);
 
+emApp.run(function ($ionicPlatform, $rootScope, $cookieStore, $state) {
+    $ionicPlatform.ready(function () {
+        // Hide the accessory bar by default (remove this to show the accessory bar above the keyboard
+        // for form inputs)
+        if (window.cordova && window.cordova.plugins.Keyboard) {
+            cordova.plugins.Keyboard.hideKeyboardAccessoryBar(true);
+        }
+        if (window.StatusBar) {
+            StatusBar.styleDefault();
+        }
+    });
+    
+    // Check login session
+    $rootScope.$on('$stateChangeStart', function (event, next, current) {
+        var userEmail = $cookieStore.get('userEmail');
+        if (!userEmail) {
+            // user not logged in | redirect to login
+            if (next.name !== "welcome") {
+                // not going to #login, we should redirect now
+                event.preventDefault();
+                $state.go('welcome');
+            }
+        } else if (next.name === "welcome") {
+            event.preventDefault();
+            $state.go('dashboard.expensesMonthly');
+        }
+    });
+});
+
+// Routes
 emApp.config(function ($stateProvider, $urlRouterProvider) {
 
     $stateProvider
@@ -91,7 +109,8 @@ emApp.config(function ($stateProvider, $urlRouterProvider) {
                 url: "/reports",
                 views: {
                     'menuContent': {
-                        templateUrl: "partials/reports.html"
+                        templateUrl: "partials/reports.html",
+                        controller: "reportsCtrl"
                     }
                 }
             })
@@ -103,7 +122,6 @@ emApp.config(function ($stateProvider, $urlRouterProvider) {
                     }
                 }
             });
-
 
     $urlRouterProvider.otherwise("/welcome");
 
