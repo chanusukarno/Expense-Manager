@@ -22,8 +22,8 @@
                 <a href="#/dashboard/profile" id="menu-item-profile" class="item em-menu" menu-close>
                     <img src="img/ionic.png">
                     <div class="titles">
-                        <div>Display Name</div>
-                        <div class="em-subtitle">user@gmail.com</div>
+                        <div><span ng-bind="user.name"></span></div>
+                        <div class="em-subtitle"><span ng-bind="user.email"></span></div>
                     </div>
                 </a>
                 <a href="#/dashboard/expensesAll" class="item em-menu item-icon-left" menu-close>

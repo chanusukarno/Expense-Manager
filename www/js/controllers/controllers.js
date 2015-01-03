@@ -1,19 +1,19 @@
 var emApp = angular.module('emApp.controllers', []);
-emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieStore) {
+emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieStore, emAPI) {
 
     // Login Modal
     $ionicModal.fromTemplateUrl('partials/modal/login.html', {
         scope: $scope,
         focusFirstInput: true
-    }).then(function (loginModal) {
-        $scope.loginModal = loginModal;
+    }).then(function (modal) {
+        $scope.loginModal = modal;
     });
     // Registration Modal
     $ionicModal.fromTemplateUrl('partials/modal/registration.html', {
         scope: $scope,
         focusFirstInput: true
-    }).then(function (regModal) {
-        $scope.regModal = regModal;
+    }).then(function (modal) {
+        $scope.regModal = modal;
     });
     //
     $scope.maskLabel = "Show password";
@@ -28,14 +28,35 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
     };
     //
     $scope.loginUser = function (user) {
-        console.log(angular.toJson(user));
-        $state.go('dashboard.expensesMonthly');
-        $scope.loginModal.hide();
+        console.log("login INPUT: " + angular.toJson(user));
+        emAPI.login(user).success(function (response) {
+            console.log("LOGIN SUCCESS: " + angular.toJson(response));
+            if (!response.error) {
+                $cookieStore.put('userInfo', response);
+                $state.go('dashboard');
+                $scope.loginModal.hide();
+            } else {
+
+            }
+        }).error(function (e) {
+            console.log("LOGIN ERROR: " + e);
+        });
     };
+
     $scope.registerUser = function (newUser) {
-        console.log(angular.toJson(newUser));
-        $state.go('dashboard.expensesMonthly');
-        $scope.regModal.hide();
+        console.log("register INPUT: " + angular.toJson(newUser));
+        emAPI.register(newUser).success(function (response) {
+            console.log("REGISTER SUCCESS: " + angular.toJson(response));
+            if (!response.error) {
+                $cookieStore.put('userInfo', newUser);
+                $state.go('dashboard');
+                $scope.regModal.hide();
+            } else {
+
+            }
+        }).error(function (e) {
+            console.log("LOGIN ERROR: " + e);
+        });
     };
 
     // SOCIAL LOGIN
@@ -59,9 +80,9 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     console.log('Facebook Login RESPONSE: ' + response.data.url);
                     // store data to DB and redirect to dashboard
                     // store user email in cookie
-                    $cookieStore.put('userEmail', userEmail);
+                    $cookieStore.put('userInfo', userEmail);
                     $scope.$apply(function () {
-                        $state.go('dashboard.expensesMonthly');
+                        $state.go('dashboard');
                     });
                 });
             });
@@ -95,9 +116,9 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     }
                     // store data to DB and redirect to dashboard
                     // store user email in cookie
-                    $cookieStore.put('userEmail', userEmail);
+                    $cookieStore.put('userInfo', userEmail);
                     $scope.$apply(function () {
-                        $state.go('dashboard.expensesMonthly');
+                        $state.go('dashboard');
                     });
                 });
             }
@@ -105,6 +126,14 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
     };
     // END Google Plus Login
 });
+
+// Recurring Expenses
+emApp.controller('dashboardCtrl', function ($scope, $state, $cookieStore) {
+    $scope.user = $cookieStore.get('userInfo');
+    $state.go('dashboard.expensesMonthly');
+});
+
+
 emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $filter, $ionicPopover) {
 
     try {
@@ -246,7 +275,7 @@ emApp.controller('expensesRecurringCtrl', function ($scope, emAPI, $ionicModal, 
 });
 
 // Settings
-emApp.controller('settingsCtrl', function ($scope, emAPI, $ionicPopup, $ionicModal, $ionicListDelegate, $state) {
+emApp.controller('settingsCtrl', function ($scope, emAPI, $cookieStore, $ionicPopup, $ionicModal, $ionicListDelegate, $state) {
 
 // Logout confirmation dialog
     $scope.showConfirm = function () {
@@ -276,6 +305,8 @@ emApp.controller('settingsCtrl', function ($scope, emAPI, $ionicPopup, $ionicMod
                     text: '<b>Log Out</b>',
                     type: 'button-positive',
                     onTap: function (e) {
+                        // Logout user
+                        $cookieStore.remove("userInfo");
                         $state.go('welcome');
                         return;
                     }
@@ -283,9 +314,9 @@ emApp.controller('settingsCtrl', function ($scope, emAPI, $ionicPopup, $ionicMod
             ]
         });
 
-        myPopup.then(function (res) {
-            console.log('Tapped!', res);
-        });
+//        myPopup.then(function (res) {
+//            console.log('Tapped!', res);
+//        });
 //        $timeout(function () {
 //            myPopup.close(); //close the popup after 3 seconds for some reason
 //        }, 3000);

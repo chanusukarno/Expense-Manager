@@ -3,7 +3,7 @@
 // angular.module is a global place for creating, registering and retrieving Angular modules
 // 'starter' is the name of this angular module example (also set in a <body> attribute in index.html)
 // the 2nd parameter is an array of 'requires'
-var emApp = angular.module('emApp', ['ngCookies', 'emApp.controllers', 'emApp.services', 'emApp.filters', 'angularMoment', 'ionic']);
+var emApp = angular.module('emApp', ['ngCookies', 'emApp.controllers', 'emApp.services', 'emApp.filters', 'emApp.config', 'angularMoment', 'ionic']);
 
 emApp.run(function ($ionicPlatform, $rootScope, $cookieStore, $state) {
     $ionicPlatform.ready(function () {
@@ -16,11 +16,11 @@ emApp.run(function ($ionicPlatform, $rootScope, $cookieStore, $state) {
             StatusBar.styleDefault();
         }
     });
-    
+
     // Check login session
     $rootScope.$on('$stateChangeStart', function (event, next, current) {
-        var userEmail = $cookieStore.get('userEmail');
-        if (!userEmail) {
+        var userInfo = $cookieStore.get('userInfo');
+        if (!userInfo) {
             // user not logged in | redirect to login
             if (next.name !== "welcome") {
                 // not going to #login, we should redirect now
@@ -34,8 +34,36 @@ emApp.run(function ($ionicPlatform, $rootScope, $cookieStore, $state) {
     });
 });
 
+emApp.config(function ($httpProvider) {
+    $httpProvider.interceptors.push(function ($rootScope) {
+        return {
+            request: function (config) {
+                $rootScope.$broadcast('loading:show');
+                return config;
+            },
+            response: function (response) {
+                $rootScope.$broadcast('loading:hide');
+                return response;
+            }
+        };
+    });
+});
+
+emApp.run(function ($rootScope, $ionicLoading) {
+    $rootScope.$on('loading:show', function () {
+        $ionicLoading.show({template: 'Loading...'});
+    });
+
+    $rootScope.$on('loading:hide', function () {
+        $ionicLoading.hide();
+    });
+});
+
 // Routes
-emApp.config(function ($stateProvider, $urlRouterProvider) {
+emApp.config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
+
+//    $httpProvider.defaults.useXDomain = true;
+//    delete $httpProvider.defaults.headers.common['X-Requested-With'];
 
     $stateProvider
             .state('welcome', {
@@ -45,8 +73,8 @@ emApp.config(function ($stateProvider, $urlRouterProvider) {
             })
             .state('dashboard', {
                 url: "/dashboard",
-                abstract: true,
-                templateUrl: "partials/dashboard.html"
+                templateUrl: "partials/dashboard.html",
+                controller: "dashboardCtrl"
             })
 //            .state('forgotpassword', {
 //                url: "/forgot-password",
