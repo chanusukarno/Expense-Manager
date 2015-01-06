@@ -2,7 +2,9 @@ var emApp = angular.module('emApp.services', []);
 
 emApp.factory('emAPI', function ($http, $q, emConstants, transformRequestAsFormPost) {
     // define the API in just one place so it's easy to update
-    var apiURL = '', config = {timeout: 10000};
+    var apiURL = '';
+    // var config = {timeout: 10000};
+    var config = {};
 
     var expenses, expensesMonthly;
 
