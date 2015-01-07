@@ -1,5 +1,5 @@
 var emApp = angular.module('emApp.controllers', []);
-emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieStore, emAPI) {
+emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieStore, emConstants, emAPI) {
 
     // Login Modal
     $ionicModal.fromTemplateUrl('partials/modal/login.html', {
@@ -26,7 +26,8 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
             // $scope.maskLabel = "Unmask password";
         }
     };
-    //
+
+    // LOGIN USER
     $scope.loginUser = function (user) {
         console.log("login INPUT: " + angular.toJson(user));
         emAPI.login(user).success(function (response) {
@@ -43,6 +44,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
         });
     };
 
+    // REGISTER USER
     $scope.registerUser = function (newUser) {
         console.log("register INPUT: " + angular.toJson(newUser));
         emAPI.register(newUser).success(function (response) {
@@ -59,8 +61,11 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
         });
     };
 
-    // SOCIAL LOGIN
-    // FB Login
+    /**
+     * SOCIAL LOGIN
+     * Facebook and Google
+     */
+        // FB Login
     $scope.fbLogin = function () {
         FB.login(function (response) {
             if (response.authResponse) {
@@ -74,15 +79,26 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
             // get basic info
             FB.api('/me', function (response) {
                 console.log('Facebook Login RESPONSE: ' + angular.toJson(response));
-                var userEmail = response.email;
                 // get profile picture
-                FB.api('/me/picture?type=normal', function (response) {
-                    console.log('Facebook Login RESPONSE: ' + response.data.url);
-                    // store data to DB and redirect to dashboard
-                    // store user email in cookie
-                    $cookieStore.put('userInfo', userEmail);
-                    $scope.$apply(function () {
-                        $state.go('dashboard');
+                FB.api('/me/picture?type=normal', function (picResponse) {
+                    console.log('Facebook Login RESPONSE: ' + picResponse.data.url);
+                    // store data to DB
+                    var user = {};
+                    user.provider_key = response.id;
+                    user.provider_name = emConstants.PROVIDER_FACEBOOK;
+                    user.name = response.name;
+                    user.email = response.email;
+                    // send user data to DB
+                    emAPI.oauth(user).success(function (response) {
+                        if (!response.error) {
+                            console.log("OAUTH SUCCESS: " + angular.toJson(response));
+                            $cookieStore.put('userInfo', user);
+                            $state.go('dashboard');
+                        } else {
+                            console.log("OAUTH ERROR: " + angular.toJson(response));
+                        }
+                    }).error(function (e) {
+                        console.log("OAUTH ERROR: " + e);
                     });
                 });
             });
@@ -114,17 +130,30 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                             }
                         }
                     }
-                    // store data to DB and redirect to dashboard
-                    // store user email in cookie
-                    $cookieStore.put('userInfo', userEmail);
-                    $scope.$apply(function () {
-                        $state.go('dashboard');
+                    // store data to DB
+                    var user = {};
+                    user.provider_key = resp.id;
+                    user.provider_name = emConstants.PROVIDER_GOOGLE;
+                    user.name = resp.displayName;
+                    user.email = userEmail;
+                    // send user data to DB
+                    emAPI.oauth(user).success(function (response) {
+                        if (!response.error) {
+                            console.log("OAUTH SUCCESS: " + angular.toJson(response));
+                            $cookieStore.put('userInfo', user);
+                            $state.go('dashboard');
+                        } else {
+                            console.log("OAUTH ERROR: " + angular.toJson(response));
+                        }
+                    }).error(function (e) {
+                        console.log("OAUTH ERROR: " + e);
                     });
                 });
             }
         }
     };
     // END Google Plus Login
+
 });
 
 // Recurring Expenses
@@ -275,7 +304,7 @@ emApp.controller('expensesRecurringCtrl', function ($scope, emAPI, $ionicModal, 
 });
 
 // Settings
-emApp.controller('settingsCtrl', function ($scope, emAPI, $cookieStore, $ionicPopup, $ionicModal, $ionicListDelegate, $state) {
+emApp.controller('settingsCtrl', function ($scope, emAPI, $cookieStore, $ionicPopup, $ionicModal, $ionicListDelegate, $state, $window) {
 
 // Logout confirmation dialog
     $scope.showConfirm = function () {
@@ -308,6 +337,7 @@ emApp.controller('settingsCtrl', function ($scope, emAPI, $cookieStore, $ionicPo
                         // Logout user
                         $cookieStore.remove("userInfo");
                         $state.go('welcome');
+                        $window.location.reload();
                         return;
                     }
                 }

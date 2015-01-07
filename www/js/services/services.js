@@ -1,6 +1,6 @@
 var emApp = angular.module('emApp.services', []);
 
-emApp.factory('emAPI', function ($http, $q, emConstants, transformRequestAsFormPost) {
+emApp.factory('emAPI', function ($http, $q, emConstants) {
     // define the API in just one place so it's easy to update
     var apiURL = '';
     // var config = {timeout: 10000};
@@ -13,20 +13,22 @@ emApp.factory('emAPI', function ($http, $q, emConstants, transformRequestAsFormP
     }
 
     return {
+        // oauth login
+        oauth: function (request) {
+            return $http.post(emConstants.BASE_URL + emConstants.OAUTH, request, config);
+        },
+
         //login
         login: function (request) {
-//            var request = $http({
-//                    method: "post",
-//                    url: emConstants.BASE_URL + emConstants.LOGIN,
-//                    transformRequest: transformRequestAsFormPost,
-//                    data: request
-//                });
             return $http.post(emConstants.BASE_URL + emConstants.LOGIN, request, config);
         },
+
+        // register
         register: function (request) {
             return $http.post(emConstants.BASE_URL + emConstants.REGISTER, request, config);
         },
-        // get all recent posts
+
+        // get all expenses
         expenses: function () {
             var q = $q.defer();
             if (!expenses) {
@@ -76,72 +78,3 @@ emApp.factory('emAPI', function ($http, $q, emConstants, transformRequestAsFormP
 
     };
 });
-
-emApp.factory("transformRequestAsFormPost", function () {
-
-    // I prepare the request data for the form post.
-    function transformRequest(data, getHeaders) {
-
-        var headers = getHeaders();
-
-        headers[ "Content-type" ] = "application/x-www-form-urlencoded; charset=utf-8";
-
-        return(serializeData(data));
-
-    }
-
-
-    // Return the factory value.
-    return(transformRequest);
-
-
-    // ---
-    // PRVIATE METHODS.
-    // ---
-
-
-    // I serialize the given Object into a key-value pair string. This
-    // method expects an object and will default to the toString() method.
-    // --
-    // NOTE: This is an atered version of the jQuery.param() method which
-    // will serialize a data collection for Form posting.
-    // --
-    // https://github.com/jquery/jquery/blob/master/src/serialize.js#L45
-    function serializeData(data) {
-
-        // If this is not an object, defer to native stringification.
-        if (!angular.isObject(data)) {
-
-            return((data == null) ? "" : data.toString());
-
-        }
-
-        var buffer = [];
-
-        // Serialize each key in the object.
-        for (var name in data) {
-
-            if (!data.hasOwnProperty(name)) {
-                continue;
-            }
-
-            var value = data[name];
-
-            buffer.push(
-                    encodeURIComponent(name) +
-                    "=" +
-                    encodeURIComponent((value == null) ? "" : value)
-                    );
-
-        }
-
-        // Serialize the buffer and clean it up for transportation.
-        var source = buffer
-                .join("&")
-                .replace(/%20/g, "+")
-                ;
-
-        return(source);
-    }
-}
-);

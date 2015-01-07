@@ -20,7 +20,7 @@ $app = new \Slim\Slim();
 $app->add(new \Slim\Middleware\ContentTypes());
 
 // User id from db - Global Variable
-$user_id = NULL;
+$userId = NULL;
 
 define('PROVIDER_GOOGLE', 'google');
 define('PROVIDER_FACEBOOK', 'facebook');
@@ -49,9 +49,9 @@ function authenticate(\Slim\Route $route) {
             echoResponse(401, $response);
             $app->stop();
         } else {
-            global $user_id;
+            global $userId;
             // get user primary key id
-            $user_id = $db->getUserId($api_key);
+            $userId = $db->getUserId($api_key);
         }
     } else {
         // api key is missing in header
@@ -93,37 +93,41 @@ $app->post('/oauth', function() use ($app) {
 
     $db = new DbHandler();
 
-    if ($db->checkLogin($email, "")) {
+    if ($db->checkEmail($email)) {
         // returning user 
         $userId = $db->getUserIdByEmail($email);
         // check for different provider
-        if($db->getAuthProviderNameById($userId) !== $providerName) {
+        if(!$db->checkAuthProvider($userId, $providerName)) {
             // insert the different provider into auth_provider table
             $db->createAuthProvider($providerKey, $providerName, $userId);
         }
         // successful login, echoing user details
         $response = getUserDetails($db, $email);
-
     } else {
         // new user, insert into 'users' and 'auth_provider' tables
-        $res = $db->createUser($name, $email, "");
+        $res = $db->createUser($email, "");
 
         if ($res == USER_CREATED_SUCCESSFULLY) {
             // inert into auth_provider table
             $userId = $db->getUserIdByEmail($email);
-            $db->createAuthProvider($providerKey, $providerName, $userId);
+            $isAuthProviderCreated = $db->createAuthProvider($providerKey, $providerName, $userId);
 
-            // successful login, echoing user details
-            $response = getUserDetails($db, $email);
+            // Add name to profile
+            $profile_id = $db->createProfile($userId, $request_params);
+
+            if($profile_id != NULL && $isAuthProviderCreated) {
+                // successful login, echoing user details
+                $response = getUserDetails($db, $email);
+            } else {
+                $response["error"] = true;
+                $response["message"] = "Failed to create Profile";
+            }
+
         } else if ($res == USER_CREATE_FAILED) {
             $response["error"] = true;
             $response["message"] = "Oops! An error occurred while registering. Try again!";
-        } else if ($res == USER_ALREADY_EXISTED) {
-            $response["error"] = true;
-            $response["message"] = "Sorry, this email already exists";
         }
     }
-
 
     // echo json response
     echoResponse(200, $response);
@@ -143,7 +147,6 @@ $app->post('/register', function() use ($app) {
     $response = array();
 
     // reading post params
-    $name = $request_params['name'];
     $email = $request_params['email'];
     $password = $request_params['password'];
 
@@ -151,11 +154,21 @@ $app->post('/register', function() use ($app) {
     validateEmail($email);
 
     $db = new DbHandler();
-    $res = $db->createUser($name, $email, $password);
+    $res = $db->createUser($email, $password);
 
     if ($res == USER_CREATED_SUCCESSFULLY) {
-        $response["error"] = false;
-        $response["message"] = "You are successfully registered!";
+
+        // Add name to profile
+        $userId = $db->getUserIdByEmail($email);
+        $profile_id = $db->createProfile($userId, $request_params);
+
+        if($profile_id != NULL) {
+            $response["error"] = false;
+            $response["message"] = "You are successfully registered!";
+        } else {
+            $response["error"] = true;
+            $response["message"] = "Failed to create Profile";
+        }
     } else if ($res == USER_CREATE_FAILED) {
         $response["error"] = true;
         $response["message"] = "Oops! An error occurred while registering. Try again!";
@@ -202,18 +215,108 @@ $app->post('/login', function() use ($app) {
  * ------------------------ METHODS WITH AUTHENTICATION ------------------------
  */
 
+/* ----------------------- 'Profile' Methods -------------------------------------
+
+/**
+ * Creating new profile
+ * method POST
+ */
+$app->post('/profile', 'authenticate', function() use ($app) {
+    // check for required params
+    $request_params = $app->request->getBody();
+    verifyRequiredParams(array('name', 'country', 'phone', 'dob', 'gender'), $request_params);
+
+    $response = array();
+
+    global $userId;
+    $db = new DbHandler();
+
+    // creating new task
+    $profile_id = $db->createProfile($userId, $request_params);
+
+    if ($profile_id != NULL) {
+        $response["error"] = false;
+        $response["message"] = "Profile created successfully";
+        $response["profile_id"] = $profile_id;
+        echoResponse(201, $response);
+    } else {
+        $response["error"] = true;
+        $response["message"] = "Failed to create Profile. Please try again";
+        echoResponse(200, $response);
+    }
+});
+
+/**
+ * Get user profile for id
+ * method GET
+ * url /profile/:id
+ */
+$app->get('/profile/:id', 'authenticate', function($profileId) {
+    global $userId;
+    $response = array();
+    $db = new DbHandler();
+
+    // fetch task
+    $result = $db->getProfile($userId, $profileId);
+
+    if ($result != NULL) {
+        $response["error"] = false;
+        $response["id"] = $result["id"];
+        $response["name"] = $result["name"];
+        $response["country"] = $result["country"];
+        $response["phone"] = $result["phone"];
+        $response["dob"] = $result["dob"];
+        $response["gender"] = $result["gender"];
+        echoResponse(200, $response);
+    } else {
+        $response["error"] = true;
+        $response["message"] = "The requested resource doesn't exists";
+        echoResponse(404, $response);
+    }
+});
+
+/**
+ * Updating existing profile
+ * method PUT
+ */
+$app->put('/profile/:id', 'authenticate', function($profileId) use($app) {
+    // check for required params
+    $request_params = $app->request->getBody();
+    verifyRequiredParams(array('name', 'country', 'phone', 'dob', 'gender'), $request_params);
+
+    global $userId;
+
+    $db = new DbHandler();
+    $response = array();
+
+    // updating task
+    $result = $db->updateProfile($userId, $profileId, $request_params);
+    if ($result) {
+        // task updated successfully
+        $response["error"] = false;
+        $response["message"] = "Profile updated successfully";
+    } else {
+        // task failed to update
+        $response["error"] = true;
+        $response["message"] = "Failed to update Profile. Please try again!";
+    }
+    echoResponse(200, $response);
+});
+
+/* ----------------------- 'Tasks' Methods -------------------------------------
+
 /**
  * Listing all tasks of particual user
  * method GET
  * url /tasks          
  */
 $app->get('/tasks', 'authenticate', function() {
-    global $user_id;
+    global $userId;
     $response = array();
     $db = new DbHandler();
 
     // fetching all user tasks
-    $result = $db->getAllUserTasks($user_id);
+    $result = $db->getAllUserTasks($userId);
 
     $response["error"] = false;
     $response["tasks"] = array();
@@ -238,12 +341,12 @@ $app->get('/tasks', 'authenticate', function() {
  * Will return 404 if the task doesn't belongs to user
  */
 $app->get('/tasks/:id', 'authenticate', function($task_id) {
-    global $user_id;
+    global $userId;
     $response = array();
     $db = new DbHandler();
 
     // fetch task
-    $result = $db->getTask($task_id, $user_id);
+    $result = $db->getTask($task_id, $userId);
 
     if ($result != NULL) {
         $response["error"] = false;
@@ -272,11 +375,11 @@ $app->get('/tasks/:id', 'authenticate', function($task_id) {
 //    $response = array();
 //    $task = $app->request->post('task');
 //
-//    global $user_id;
+//    global $userId;
 //    $db = new DbHandler();
 //
 //    // creating new task
-//    $task_id = $db->createTask($user_id, $task);
+//    $task_id = $db->createTask($userId, $task);
 //
 //    if ($task_id != NULL) {
 //        $response["error"] = false;
@@ -300,7 +403,7 @@ $app->get('/tasks/:id', 'authenticate', function($task_id) {
 //    // check for required params
 //    verifyRequiredParams(array('task', 'status'));
 //
-//    global $user_id;
+//    global $userId;
 //    $task = $app->request->put('task');
 //    $status = $app->request->put('status');
 //
@@ -308,7 +411,7 @@ $app->get('/tasks/:id', 'authenticate', function($task_id) {
 //    $response = array();
 //
 //    // updating task
-//    $result = $db->updateTask($user_id, $task_id, $task, $status);
+//    $result = $db->updateTask($userId, $task_id, $task, $status);
 //    if ($result) {
 //        // task updated successfully
 //        $response["error"] = false;
@@ -327,11 +430,11 @@ $app->get('/tasks/:id', 'authenticate', function($task_id) {
  * url /tasks
  */
 $app->delete('/tasks/:id', 'authenticate', function($task_id) use($app) {
-    global $user_id;
+    global $userId;
 
     $db = new DbHandler();
     $response = array();
-    $result = $db->deleteTask($user_id, $task_id);
+    $result = $db->deleteTask($userId, $task_id);
     if ($result) {
         // task deleted successfully
         $response["error"] = false;
@@ -350,11 +453,7 @@ $app->delete('/tasks/:id', 'authenticate', function($task_id) use($app) {
 function verifyRequiredParams($required_fields, $request_params) {
     $error = false;
     $error_fields = "";
-    // Handling PUT request params
-    if ($_SERVER['REQUEST_METHOD'] == 'PUT') {
-        $app = \Slim\Slim::getInstance();
-        parse_str($app->request()->getBody(), $request_params);
-    }
+
     foreach ($required_fields as $field) {
         if (!isset($request_params[$field]) || strlen(trim($request_params[$field])) <= 0) {
             $error = true;
@@ -411,7 +510,6 @@ function getUserDetails($db, $email) {
 
     if ($user != NULL) {
         $response["error"] = false;
-        $response['name'] = $user['name'];
         $response['email'] = $user['email'];
         $response['apiKey'] = $user['api_key'];
         $response['createdAt'] = $user['created_at'];
