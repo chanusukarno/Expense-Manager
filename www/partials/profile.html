@@ -1,36 +1,39 @@
 <ion-view view-title="Profile">
     <ion-content>
         <div class="list">
-            <div id="em-profile" class="item" menu-close>
-                <img src="img/ionic.png">
+            <div id="em-profile" class="item filler-mask" menu-close ng-style="{'background-image': 'url(img/profile_bg.png)'}">
+                <!-- <img src="img/ionic.png"> -->
+                <div ng-if="user.profilePic" class="profile-pic" ng-style="{'background-image': 'url(' + user.profilePic+ ')'}"></div>
+                <div ng-if="!user.profilePic" class="profile-pic" style="background-image: url(img/ionic.png)"></div>
             </div>
             <div class="list">
                 <label class="item item-input">
                     <span class="input-label">Email</span>
-                    <input ng-model="expense.amount" type="text" placeholder="user@gmail.com">
+                    <input ng-model="user.email" type="text" placeholder="user@gmail.com" disabled="disabled">
                 </label>
                 <label class="item item-input">
                     <span class="input-label">Display Name</span>
-                    <input ng-model="expense.title" type="text" placeholder="Chanu Sukarno">
+                    <input ng-model="user.name" type="text" placeholder="Chanu Sukarno">
                 </label>
                 <label class="item item-input">
                     <span class="input-label">Country</span>
-                    <input ng-model="expense.title" type="text" placeholder="INDIA">
+                    <input ng-model="user.country" type="text" placeholder="INDIA">
                 </label>
                 <label class="item item-input">
                     <span class="input-label">Phone</span>
-                    <input ng-model="expense.title" type="text" placeholder="+91 8123595959">
+                    <input ng-model="user.phone" type="text" placeholder="+91 8123595959">
                 </label>
                 <label class="item item-input">
                     <span class="input-label">Birthday</span>
-                    <input ng-model="expense.title" type="date" placeholder="">
+                    <input ng-model="user.dob" type="date" placeholder="">
                 </label>
                 <label class="item item-input em-gender">
                     <span class="input-label">Gender</span>
-                    <ion-checkbox class="em-gender-cb" ng-model="isMale" ng-change="isMale ? gender='male' : gender = 'female';
-                        isFemale = false" ng-checked="gender === 'male'">Male</ion-checkbox>
-                    <ion-checkbox class="em-gender-cb" ng-model="isFemale" ng-change="isFemale ? gender='female' : gender = 'male';
-                        isMale = false" ng-checked="gender === 'female'">Female</ion-checkbox>
+
+                    <ion-checkbox class="em-gender-cb" ng-model="isMale" ng-change="isMale ? user.gender='M' : user.gender = 'F';
+                        isFemale = false" ng-checked="user.gender === 'M'">Male</ion-checkbox>
+                    <ion-checkbox class="em-gender-cb" ng-model="isFemale" ng-change="isFemale ? user.gender='F' : user.gender = 'M';
+                        isMale = false" ng-checked="user.gender === 'F'">Female</ion-checkbox>
                 </label>
 
             </div>

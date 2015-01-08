@@ -120,7 +120,8 @@ emApp.config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
                 url: "/profile",
                 views: {
                     'menuContent': {
-                        templateUrl: "partials/profile.html"
+                        templateUrl: "partials/profile.html",
+                        "controller": "profileCtrl"
                     }
                 }
             })

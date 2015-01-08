@@ -60,20 +60,25 @@ hr {
 }
 
 #menu-item-profile {
-    padding: 15px;
+    padding: 12px;
 }
 
-#menu-item-profile img {
-    height: 50px;
-    width: 50px;
+#menu-item-profile .profile-pic {
+    height: 55px;
+    width: 55px;
     float: left;
+    background-size: cover;
+    display: block;
+    border-radius: 100px;
+    -webkit-border-radius: 100px;
+    -moz-border-radius: 100px;
 }
 
 #menu-item-profile .titles {
-    height: 50px;
+    height: 55px;
     display: table-cell;
     vertical-align: middle;
-    padding-left: 18px;
+    padding-left: 15px;
 }
 
 #menu-item-profile .em-subtitle {
@@ -227,11 +232,28 @@ hr {
 #em-profile {
     padding: 30px;
     text-align: center;
+    background-repeat: repeat;
 }
 
-#em-profile img {
+#em-profile .filler-mask{
+    padding: 30px;
+    text-align: center;
+    background: #000;
+    position:absolute;
+    z-index: 2;
+    opacity:0.75;
+}
+
+#em-profile .profile-pic {
     height: 75px;
     width: 75px;
+    background-size: cover;
+    display: block;
+    margin: 0 auto 0 auto;
+    border-radius: 100px;
+    -webkit-border-radius: 100px;
+    -moz-border-radius: 100px;
+    text-align: center;
 }
 
 .em-gender .item-checkbox {

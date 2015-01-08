@@ -88,6 +88,8 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     user.provider_name = emConstants.PROVIDER_FACEBOOK;
                     user.name = response.name;
                     user.email = response.email;
+                    response.gender.toString().toLowerCase() === 'male' ? user.gender = 'M' : user.gender = 'F';
+                    user.profilePic = picResponse.data.url;
                     // send user data to DB
                     emAPI.oauth(user).success(function (response) {
                         if (!response.error) {
@@ -136,6 +138,8 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     user.provider_name = emConstants.PROVIDER_GOOGLE;
                     user.name = resp.displayName;
                     user.email = userEmail;
+                    resp.gender.toString().toLowerCase() === 'male' ? user.gender = 'M' : user.gender = 'F';
+                    user.profilePic = resp.image.url;
                     // send user data to DB
                     emAPI.oauth(user).success(function (response) {
                         if (!response.error) {
@@ -156,7 +160,16 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
 
 });
 
-// Recurring Expenses
+// Profile Controller
+emApp.controller('profileCtrl', function ($scope, $state, $cookieStore) {
+
+    $scope.user = $cookieStore.get('userInfo');
+
+
+
+});
+
+// Dashboard Controller
 emApp.controller('dashboardCtrl', function ($scope, $state, $cookieStore) {
     $scope.user = $cookieStore.get('userInfo');
     $state.go('dashboard.expensesMonthly');
