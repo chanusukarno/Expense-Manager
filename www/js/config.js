@@ -7,6 +7,7 @@ emApp.constant('emConstants', {
     "BASE_URL": "http://localhost:8899/EM-Services/v1/", // Local
     "OAUTH": "oauth",
     "LOGIN": "login",
+    "PROFILE": "profile",
     "REGISTER": "register",
     "PROVIDER_GOOGLE": "google",
     "PROVIDER_FACEBOOK": "facebook"

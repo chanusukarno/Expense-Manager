@@ -1,11 +1,10 @@
 var emApp = angular.module('emApp.services', []);
 
-emApp.factory('emAPI', function ($http, $q, emConstants) {
+emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
     // define the API in just one place so it's easy to update
     var apiURL = '';
     // var config = {timeout: 10000};
     var config = {};
-
     var expenses, expensesMonthly;
 
     function validateResponse(result) {
@@ -28,22 +27,32 @@ emApp.factory('emAPI', function ($http, $q, emConstants) {
             return $http.post(emConstants.BASE_URL + emConstants.REGISTER, request, config);
         },
 
+        // profile retrieve
+        getProfile: function (profileId) {
+            return $http.get(emConstants.BASE_URL + emConstants.PROFILE + "/" + profileId, config);
+        },
+
+        // update profile
+        updateProfile: function (request) {
+            return $http.put(emConstants.BASE_URL + emConstants.PROFILE + "/" + request.id, request, config);
+        },
+
         // get all expenses
         expenses: function () {
             var q = $q.defer();
             if (!expenses) {
                 $http.get(apiURL + 'data/expenses.json', config)
-                        .then(function (result) {
-                            if (!validateResponse(result)) {
-                                q.reject(new Error('Invalid Response'));
-                            } else {
-                                expenses = result.data;
-                                q.resolve(result.data);
-                            }
-                        }, function (err) {
-                            console.log('expenses/ Failed');
-                            q.reject(err);
-                        });
+                    .then(function (result) {
+                        if (!validateResponse(result)) {
+                            q.reject(new Error('Invalid Response'));
+                        } else {
+                            expenses = result.data;
+                            q.resolve(result.data);
+                        }
+                    }, function (err) {
+                        console.log('expenses/ Failed');
+                        q.reject(err);
+                    });
             } else {
                 q.resolve(expenses);
             }
@@ -53,17 +62,17 @@ emApp.factory('emAPI', function ($http, $q, emConstants) {
             var q = $q.defer();
             if (!expensesMonthly) {
                 $http.get(apiURL + 'data/expensesMonthly.json', config)
-                        .then(function (result) {
-                            if (!validateResponse(result)) {
-                                q.reject(new Error('Invalid Response'));
-                            } else {
-                                expensesMonthly = result.data;
-                                q.resolve(result.data);
-                            }
-                        }, function (err) {
-                            console.log('expenses/ Failed');
-                            q.reject(err);
-                        });
+                    .then(function (result) {
+                        if (!validateResponse(result)) {
+                            q.reject(new Error('Invalid Response'));
+                        } else {
+                            expensesMonthly = result.data;
+                            q.resolve(result.data);
+                        }
+                    }, function (err) {
+                        console.log('expenses/ Failed');
+                        q.reject(err);
+                    });
             } else {
                 q.resolve(expensesMonthly);
             }

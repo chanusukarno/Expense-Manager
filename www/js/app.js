@@ -66,91 +66,91 @@ emApp.config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
 //    delete $httpProvider.defaults.headers.common['X-Requested-With'];
 
     $stateProvider
-            .state('welcome', {
-                url: "/welcome",
-                templateUrl: "partials/welcome.html",
-                controller: 'welcomeCtrl'
-            })
-            .state('dashboard', {
-                url: "/dashboard",
-                templateUrl: "partials/dashboard.html",
-                controller: "dashboardCtrl"
-            })
+        .state('welcome', {
+            url: "/welcome",
+            templateUrl: "partials/welcome.html",
+            controller: 'welcomeCtrl'
+        })
+        .state('dashboard', {
+            url: "/dashboard",
+            templateUrl: "partials/dashboard.html",
+            controller: "dashboardCtrl"
+        })
 //            .state('forgotpassword', {
 //                url: "/forgot-password",
 //                templateUrl: "forgot-password.html"
 //            })
-            .state('dashboard.expensesMonthly', {
-                url: "/expensesMonthly",
-                views: {
-                    'menuContent': {
-                        templateUrl: "partials/expensesMonthly.html",
-                        controller: "ExpensesMonthlyCtrl"
-                    }
+        .state('dashboard.expensesMonthly', {
+            url: "/expensesMonthly",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/expensesMonthly.html",
+                    controller: "ExpensesMonthlyCtrl"
                 }
-            })
-            .state('dashboard.expensesAll', {
-                url: "/expensesAll",
-                views: {
-                    'menuContent': {
-                        templateUrl: "partials/expensesAll.html",
-                        controller: "ExpensesAllCtrl"
-                    }
+            }
+        })
+        .state('dashboard.expensesAll', {
+            url: "/expensesAll",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/expensesAll.html",
+                    controller: "ExpensesAllCtrl"
                 }
-            })
-            .state('dashboard.expensesRecurring', {
-                url: "/expensesRecurring",
-                views: {
-                    'menuContent': {
-                        templateUrl: "partials/expensesRecurring.html",
-                        controller: "expensesRecurringCtrl"
-                    }
+            }
+        })
+        .state('dashboard.expensesRecurring', {
+            url: "/expensesRecurring",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/expensesRecurring.html",
+                    controller: "expensesRecurringCtrl"
                 }
-            })
-            .state('dashboard.borrowsLends', {
-                url: "/borrowsLends",
-                views: {
-                    'menuContent': {
-                        templateUrl: "partials/borrowsLends.html",
-                        controller: "borrowsLendsCtrl"
-                    }
+            }
+        })
+        .state('dashboard.borrowsLends', {
+            url: "/borrowsLends",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/borrowsLends.html",
+                    controller: "borrowsLendsCtrl"
                 }
-            })
-            .state('dashboard.profile', {
-                url: "/profile",
-                views: {
-                    'menuContent': {
-                        templateUrl: "partials/profile.html",
-                        "controller": "profileCtrl"
-                    }
+            }
+        })
+        .state('dashboard.profile', {
+            url: "/profile",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/profile.html",
+                    "controller": "profileCtrl"
                 }
-            })
-            .state('dashboard.settings', {
-                url: "/settings",
-                views: {
-                    'menuContent': {
-                        templateUrl: "partials/settings.html",
-                        controller: "settingsCtrl"
-                    }
+            }
+        })
+        .state('dashboard.settings', {
+            url: "/settings",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/settings.html",
+                    controller: "settingsCtrl"
                 }
-            })
-            .state('dashboard.reports', {
-                url: "/reports",
-                views: {
-                    'menuContent': {
-                        templateUrl: "partials/reports.html",
-                        controller: "reportsCtrl"
-                    }
+            }
+        })
+        .state('dashboard.reports', {
+            url: "/reports",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/reports.html",
+                    controller: "reportsCtrl"
                 }
-            })
-            .state('dashboard.help', {
-                url: "/help",
-                views: {
-                    'menuContent': {
-                        templateUrl: "partials/help.html"
-                    }
+            }
+        })
+        .state('dashboard.help', {
+            url: "/help",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/help.html"
                 }
-            });
+            }
+        });
 
     $urlRouterProvider.otherwise("/welcome");
 

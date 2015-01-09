@@ -29,7 +29,8 @@ define('PROVIDER_FACEBOOK', 'facebook');
  * Adding Middle Layer to authenticate every request
  * Checking if the request has valid api key in the 'Authorization' header
  */
-function authenticate(\Slim\Route $route) {
+function authenticate(\Slim\Route $route)
+{
     // Getting request headers
     $headers = apache_request_headers();
     $response = array();
@@ -72,7 +73,7 @@ function authenticate(\Slim\Route $route) {
  * method - POST
  * params - provider_key, provider_name, name, email, profile_pic
  */
-$app->post('/oauth', function() use ($app) {
+$app->post('/oauth', function () use ($app) {
     // check for required params
     $request_params = $app->request->getBody();
     verifyRequiredParams(array('provider_key', 'provider_name', 'name', 'email'), $request_params);
@@ -82,9 +83,7 @@ $app->post('/oauth', function() use ($app) {
     // reading post params
     $providerKey = $request_params['provider_key'];
     $providerName = $request_params['provider_name'];
-    $name = $request_params['name'];
     $email = $request_params['email'];
-    // $profilePic = $request_params['profile_pic'];
 
     // validating email address
     validateEmail($email);
@@ -97,14 +96,26 @@ $app->post('/oauth', function() use ($app) {
         // returning user 
         $userId = $db->getUserIdByEmail($email);
         // check for different provider
-        if(!$db->checkAuthProvider($userId, $providerName)) {
+        if (!$db->checkAuthProvider($userId, $providerName)) {
             // insert the different provider into auth_provider table
-            $db->createAuthProvider($providerKey, $providerName, $userId);
+            $isAuthProviderCreated = $db->createAuthProvider($providerKey, $providerName, $userId);
+            if (!$isAuthProviderCreated) {
+                $response["error"] = true;
+                $response["message"] = "Failed to create Auth Provider";
+                echoResponse(200, $response);
+                $app->stop();
+            }
         }
+        // successful login, update profile
+        $profileId = $db->getProfileIdByUserId($userId);
+        // $db->updateProfile($userId, $profileId, $request_params); // TODO
         // successful login, echoing user details
         $response = getUserDetails($db, $email);
+        $response["profileId"] = $profileId;
+        $response["error"] = false;
+
     } else {
-        // new user, insert into 'users' and 'auth_provider' tables
+        // new user, insert into 'users' and 'auth_provider' tables and create 'profile'
         $res = $db->createUser($email, "");
 
         if ($res == USER_CREATED_SUCCESSFULLY) {
@@ -112,12 +123,14 @@ $app->post('/oauth', function() use ($app) {
             $userId = $db->getUserIdByEmail($email);
             $isAuthProviderCreated = $db->createAuthProvider($providerKey, $providerName, $userId);
 
-            // Add name to profile
-            $profile_id = $db->createProfile($userId, $request_params);
+            // create profile
+            $profileId = $db->createProfile($userId, $request_params);
 
-            if($profile_id != NULL && $isAuthProviderCreated) {
+            if ($profileId != NULL && $isAuthProviderCreated) {
                 // successful login, echoing user details
                 $response = getUserDetails($db, $email);
+                $response["profileId"] = $profileId;
+                $response["error"] = false;
             } else {
                 $response["error"] = true;
                 $response["message"] = "Failed to create Profile";
@@ -139,7 +152,7 @@ $app->post('/oauth', function() use ($app) {
  * method - POST
  * params - name, email, password
  */
-$app->post('/register', function() use ($app) {
+$app->post('/register', function () use ($app) {
     // check for required params
     $request_params = $app->request->getBody();
     verifyRequiredParams(array('name', 'email', 'password'), $request_params);
@@ -157,14 +170,14 @@ $app->post('/register', function() use ($app) {
     $res = $db->createUser($email, $password);
 
     if ($res == USER_CREATED_SUCCESSFULLY) {
-
         // Add name to profile
         $userId = $db->getUserIdByEmail($email);
-        $profile_id = $db->createProfile($userId, $request_params);
+        $profileId = $db->createProfile($userId, $request_params);
 
-        if($profile_id != NULL) {
+        if ($profileId != NULL) {
+            $response = getUserDetails($db, $email);
+            $response["profileId"] = $profileId;
             $response["error"] = false;
-            $response["message"] = "You are successfully registered!";
         } else {
             $response["error"] = true;
             $response["message"] = "Failed to create Profile";
@@ -186,7 +199,7 @@ $app->post('/register', function() use ($app) {
  * method - POST
  * params - email, password
  */
-$app->post('/login', function() use ($app) {
+$app->post('/login', function () use ($app) {
     // check for required params
     $request_params = $app->request->getBody();
     verifyRequiredParams(array('email', 'password'), $request_params);
@@ -200,8 +213,18 @@ $app->post('/login', function() use ($app) {
     $db = new DbHandler();
     // check for correct email and password
     if ($db->checkLogin($email, $password)) {
-        // get the user by email
-        $response = getUserDetails($db, $email);
+        $userId = $db->getUserIdByEmail($email);
+        $profileId = $db->getProfileIdByUserId($userId);
+        // echo user details with profileId
+        if ($profileId != NULL) {
+            $response = getUserDetails($db, $email);
+            $response["profileId"] = $profileId;
+            $response["error"] = false;
+        } else {
+            $response["error"] = true;
+            $response["message"] = "Failed to fetch Profile";
+        }
+
     } else {
         // user credentials are wrong
         $response['error'] = true;
@@ -221,10 +244,10 @@ $app->post('/login', function() use ($app) {
  * Creating new profile
  * method POST
  */
-$app->post('/profile', 'authenticate', function() use ($app) {
+$app->post('/profile', 'authenticate', function () use ($app) {
     // check for required params
     $request_params = $app->request->getBody();
-    verifyRequiredParams(array('name', 'country', 'phone', 'dob', 'gender'), $request_params);
+    // verifyRequiredParams(array('name', 'profilePic', 'country', 'phone', 'dob', 'gender'), $request_params);
 
     $response = array();
 
@@ -251,7 +274,7 @@ $app->post('/profile', 'authenticate', function() use ($app) {
  * method GET
  * url /profile/:id
  */
-$app->get('/profile/:id', 'authenticate', function($profileId) {
+$app->get('/profile/:id', 'authenticate', function ($profileId) {
     global $userId;
     $response = array();
     $db = new DbHandler();
@@ -260,13 +283,21 @@ $app->get('/profile/:id', 'authenticate', function($profileId) {
     $result = $db->getProfile($userId, $profileId);
 
     if ($result != NULL) {
+        $response = $result;
         $response["error"] = false;
-        $response["id"] = $result["id"];
-        $response["name"] = $result["name"];
-        $response["country"] = $result["country"];
-        $response["phone"] = $result["phone"];
-        $response["dob"] = $result["dob"];
-        $response["gender"] = $result["gender"];
+
+        // change date format
+        if(isset($response["dob"]) && strlen(trim($response["dob"])) > 0) {
+            $sqlDate = $response["dob"];
+            if($sqlDate !== "0000-00-00") {
+                $sqlDate = str_replace('/', '-', $sqlDate);
+                $response["dob"] = strtotime($sqlDate) * 1000;
+            } else {
+                $response["dob"] = "";
+            }
+
+        }
+
         echoResponse(200, $response);
     } else {
         $response["error"] = true;
@@ -279,15 +310,22 @@ $app->get('/profile/:id', 'authenticate', function($profileId) {
  * Updating existing profile
  * method PUT
  */
-$app->put('/profile/:id', 'authenticate', function($profileId) use($app) {
+$app->put('/profile/:id', 'authenticate', function ($profileId) use ($app) {
     // check for required params
     $request_params = $app->request->getBody();
-    verifyRequiredParams(array('name', 'country', 'phone', 'dob', 'gender'), $request_params);
+    verifyRequiredParams(array('name'), $request_params);
 
     global $userId;
 
     $db = new DbHandler();
     $response = array();
+
+    // change date format
+    if(isset($request_params["dob"]) && strlen(trim($request_params["dob"])) > 0) {
+        $oldDate = $request_params["dob"];
+        $oldDate = str_replace('/', '-', $oldDate);
+        $request_params["dob"] = date('Y-m-d', strtotime($oldDate));
+    }
 
     // updating task
     $result = $db->updateProfile($userId, $profileId, $request_params);
@@ -310,7 +348,7 @@ $app->put('/profile/:id', 'authenticate', function($profileId) use($app) {
  * method GET
  * url /tasks          
  */
-$app->get('/tasks', 'authenticate', function() {
+$app->get('/tasks', 'authenticate', function () {
     global $userId;
     $response = array();
     $db = new DbHandler();
@@ -340,7 +378,7 @@ $app->get('/tasks', 'authenticate', function() {
  * url /tasks/:id
  * Will return 404 if the task doesn't belongs to user
  */
-$app->get('/tasks/:id', 'authenticate', function($task_id) {
+$app->get('/tasks/:id', 'authenticate', function ($task_id) {
     global $userId;
     $response = array();
     $db = new DbHandler();
@@ -429,7 +467,7 @@ $app->get('/tasks/:id', 'authenticate', function($task_id) {
  * method DELETE
  * url /tasks
  */
-$app->delete('/tasks/:id', 'authenticate', function($task_id) use($app) {
+$app->delete('/tasks/:id', 'authenticate', function ($task_id) use ($app) {
     global $userId;
 
     $db = new DbHandler();
@@ -450,7 +488,8 @@ $app->delete('/tasks/:id', 'authenticate', function($task_id) use($app) {
 /**
  * Verifying required params posted or not
  */
-function verifyRequiredParams($required_fields, $request_params) {
+function verifyRequiredParams($required_fields, $request_params)
+{
     $error = false;
     $error_fields = "";
 
@@ -476,7 +515,8 @@ function verifyRequiredParams($required_fields, $request_params) {
 /**
  * Validating email address
  */
-function validateEmail($email) {
+function validateEmail($email)
+{
     $app = \Slim\Slim::getInstance();
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $response["error"] = true;
@@ -489,9 +529,10 @@ function validateEmail($email) {
 /**
  * Validate provider name
  */
-function validateProviderName($providerName) {
+function validateProviderName($providerName)
+{
     $app = \Slim\Slim::getInstance();
-    if($providerName !== PROVIDER_FACEBOOK && $providerName !== PROVIDER_GOOGLE) {
+    if ($providerName !== PROVIDER_FACEBOOK && $providerName !== PROVIDER_GOOGLE) {
         $response["error"] = true;
         $response["message"] = "Invalid provider name, values: "
             . PROVIDER_FACEBOOK . " and "
@@ -504,7 +545,8 @@ function validateProviderName($providerName) {
 /**
  * echoing user details
  */
-function getUserDetails($db, $email) {
+function getUserDetails($db, $email)
+{
     $response = array();
     $user = $db->getUserByEmail($email);
 
@@ -527,7 +569,8 @@ function getUserDetails($db, $email) {
  * @param String $status_code Http response code
  * @param String $response Json response
  */
-function echoResponse($status_code, $response) {
+function echoResponse($status_code, $response)
+{
     $app = \Slim\Slim::getInstance();
     // Http response code
     $app->status($status_code);

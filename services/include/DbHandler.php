@@ -285,17 +285,14 @@ class DbHandler
 
     /**
      * Fetching profile id by user id
-     * @param String $email in user table
      */
     public function getProfileIdByUserId($userId)
     {
-        $stmt = $this->conn->prepare("SELECT profile_is FROM user_profiles WHERE user_id = ?");
-        $stmt->bind_param("s", $userId);
+        $stmt = $this->conn->prepare("SELECT profile_id FROM user_profiles WHERE user_id = ?");
+        $stmt->bind_param("i", $userId);
         if ($stmt->execute()) {
             $stmt->bind_result($profileId);
             $stmt->fetch();
-            // $api_key = $stmt->get_result()->fetch_assoc();
-            // TODO
             $stmt->close();
             return $profileId;
         } else {
@@ -319,15 +316,16 @@ class DbHandler
      * @param String $requestParams
      */
     public function createProfile($userId, $requestParams) {
-        $stmt = $this->conn->prepare("INSERT INTO profiles(name, country, phone, dob, gender) VALUES(?, ?, ?, ?, ?)");
+        $stmt = $this->conn->prepare("INSERT INTO profiles(name, profile_pic, country, phone, dob, gender) VALUES(?, ?, ?, ?, ?, ?)");
 
         isset($requestParams['name']) ? $name = $requestParams['name'] : $name = '';
+        isset($requestParams['profilePic']) ? $profilePic = $requestParams['profilePic'] : $profilePic = '';
         isset($requestParams['country']) ? $country = $requestParams['country'] : $country = '';
         isset($requestParams['phone']) ? $phone = $requestParams['phone'] : $phone = '';
         isset($requestParams['dob']) ? $dob = $requestParams['dob'] : $dob = '';
         isset($requestParams['gender']) ? $gender = $requestParams['gender'] : $gender = '';
 
-        $stmt->bind_param("sssss", $name, $country, $phone, $dob, $gender);
+        $stmt->bind_param("ssssss", $name, $profilePic, $country, $phone, $dob, $gender);
         $result = $stmt->execute();
 
         if ($result) {
@@ -355,14 +353,15 @@ class DbHandler
      */
     public function getProfile($user_id, $profileId) {
         // $profileId = getProfileIdByUserId($user_id);
-        $stmt = $this->conn->prepare("SELECT p.id, p.name, p.country, p.phone, p.dob, p.gender from profiles p, user_profiles up WHERE p.id = ? AND up.profile_id = p.id AND up.user_id = ?");
+        $stmt = $this->conn->prepare("SELECT p.id, p.name, p.profile_pic, p.country, p.phone, p.dob, p.gender from profiles p, user_profiles up WHERE p.id = ? AND up.profile_id = p.id AND up.user_id = ?");
         $stmt->bind_param("ii", $profileId, $user_id);
         if ($stmt->execute()) {
             $res = array();
-            $stmt->bind_result($id, $name, $country, $phone, $dob, $gender);
+            $stmt->bind_result($id, $name, $profilePic, $country, $phone, $dob, $gender);
             $stmt->fetch();
             $res["id"] = $id;
             $res["name"] = $name;
+            $res["profilePic"] = $profilePic;
             $res["country"] = $country;
             $res["phone"] = $phone;
             $res["dob"] = $dob;
@@ -377,13 +376,21 @@ class DbHandler
     /**
      * Update profile
      * @param String $userId
-     * @param String $profile_id id of the profile
-     * @param String $request_params
+     * @param String $profileId id of the profile
+     * @param String $requestParams
      */
-    public function updateProfile($userId, $profileId, $request_params)
+    public function updateProfile($userId, $profileId, $requestParams)
     {
-        $stmt = $this->conn->prepare("UPDATE profiles p, user_profiles up set p.name = ?, p.country = ?, p.phone = ?, p.dob = ?, p.gender = ?   WHERE p.id = ? AND p.id = up.profile_id AND up.user_id = ?");
-        $stmt->bind_param("sssssii", $request_params['name'], $request_params['country'], $request_params['phone'], $request_params['dob'], $request_params['gender'], $profileId, $userId);
+        $stmt = $this->conn->prepare("UPDATE profiles p, user_profiles up set p.name = ?, p.profile_pic = ?, p.country = ?, p.phone = ?, p.dob = ?, p.gender = ?   WHERE p.id = ? AND p.id = up.profile_id AND up.user_id = ?");
+
+        isset($requestParams['name']) ? $name = $requestParams['name'] : $name = '';
+        isset($requestParams['profilePic']) ? $profilePic = $requestParams['profilePic'] : $profilePic = '';
+        isset($requestParams['country']) ? $country = $requestParams['country'] : $country = '';
+        isset($requestParams['phone']) ? $phone = $requestParams['phone'] : $phone = '';
+        isset($requestParams['dob']) ? $dob = $requestParams['dob'] : $dob = '';
+        isset($requestParams['gender']) ? $gender = $requestParams['gender'] : $gender = '';
+
+        $stmt->bind_param("ssssssii", $name, $profilePic, $country, $phone, $dob, $gender, $profileId, $userId);
         $stmt->execute();
         $num_affected_rows = $stmt->affected_rows;
         $stmt->close();

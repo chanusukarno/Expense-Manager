@@ -50,7 +50,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
         emAPI.register(newUser).success(function (response) {
             console.log("REGISTER SUCCESS: " + angular.toJson(response));
             if (!response.error) {
-                $cookieStore.put('userInfo', newUser);
+                $cookieStore.put('userInfo', response);
                 $state.go('dashboard');
                 $scope.regModal.hide();
             } else {
@@ -94,7 +94,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     emAPI.oauth(user).success(function (response) {
                         if (!response.error) {
                             console.log("OAUTH SUCCESS: " + angular.toJson(response));
-                            $cookieStore.put('userInfo', user);
+                            $cookieStore.put('userInfo', response);
                             $state.go('dashboard');
                         } else {
                             console.log("OAUTH ERROR: " + angular.toJson(response));
@@ -144,7 +144,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     emAPI.oauth(user).success(function (response) {
                         if (!response.error) {
                             console.log("OAUTH SUCCESS: " + angular.toJson(response));
-                            $cookieStore.put('userInfo', user);
+                            $cookieStore.put('userInfo', response);
                             $state.go('dashboard');
                         } else {
                             console.log("OAUTH ERROR: " + angular.toJson(response));
@@ -160,19 +160,77 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
 
 });
 
-// Profile Controller
-emApp.controller('profileCtrl', function ($scope, $state, $cookieStore) {
+// Dashboard Controller
+emApp.controller('dashboardCtrl', function ($scope, $http, $state, $cookieStore, emAPI) {
+
+    // Add default header to all the API calls
+    if ($cookieStore.get('userInfo')) {
+        var API_KEY = $cookieStore.get('userInfo').apiKey;
+        $http.defaults.headers.common.Authorization = API_KEY;
+    }
 
     $scope.user = $cookieStore.get('userInfo');
 
+    $scope.profile = $cookieStore.get('userProfile');
 
+    if(!$scope.profile) {
+        // get user profile and store
+        emAPI.getProfile($scope.user.profileId).success(function (response) {
+            console.log("GET PROFILE SUCCESS: " + angular.toJson(response));
+            if (!response.error) {
+                // store user profile data
+                $cookieStore.put("userProfile", response);
+                // set scope data
+                $scope.profile = response;
+            } else {
+                console.log("GET PROFILE ERROR: " + angular.toJson(response));
+            }
+        }).error(function (e) {
+            console.log("GET PROFILE ERROR: " + e);
+        });
+    }
 
+    $state.go('dashboard.expensesMonthly');
 });
 
-// Dashboard Controller
-emApp.controller('dashboardCtrl', function ($scope, $state, $cookieStore) {
+// Profile Controller
+emApp.controller('profileCtrl', function ($scope, $state, $cookieStore, $ionicLoading, emAPI) {
+
     $scope.user = $cookieStore.get('userInfo');
-    $state.go('dashboard.expensesMonthly');
+    $scope.profile = $cookieStore.get('userProfile');
+
+    $scope.isProfileModified = false;
+
+    $scope.$watch("profile", function(newData, oldData) {
+        if(newData != oldData) {
+            console.log("Profile updated!");
+            $scope.isProfileModified = true;
+        }
+    }, true);
+
+    $scope.profile.dobObj = new Date($scope.profile.dob);
+
+    // Update profile
+    $scope.updateProfile = function() {
+
+        var request = angular.copy($scope.profile);
+        request.dob = $scope.profile.dobObj;
+
+        emAPI.updateProfile(request).success(function (response) {
+            if (!response.error) {
+                // profile update successfully
+                console.log("UPDATE PROFILE SUCCESS: " + angular.toJson(response));
+                $scope.isProfileModified = false;
+                $cookieStore.put('userProfile', $scope.profile);
+                $ionicLoading.show({ template: 'Updated successfully!', noBackdrop: true, duration: 2000 });
+            } else {
+                console.log("UPDATE PROFILE ERROR: " + angular.toJson(response));
+            }
+        }).error(function (e) {
+            console.log("UPDATE PROFILE ERROR: " + e);
+        });
+    }
+
 });
 
 
@@ -349,6 +407,7 @@ emApp.controller('settingsCtrl', function ($scope, emAPI, $cookieStore, $ionicPo
                     onTap: function (e) {
                         // Logout user
                         $cookieStore.remove("userInfo");
+                        $cookieStore.remove("userProfile");
                         $state.go('welcome');
                         $window.location.reload();
                         return;

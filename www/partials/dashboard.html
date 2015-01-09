@@ -20,10 +20,10 @@
         <ion-content>
             <div class="list padding-left padding-right">
                 <a href="#/dashboard/profile" id="menu-item-profile" class="item em-menu" menu-close>
-                    <div ng-if="user.profilePic" class="profile-pic" ng-style="{'background-image': 'url(' + user.profilePic+ ')'}"></div>
-                    <div ng-if="!user.profilePic" class="profile-pic" style="background-image: url(img/ionic.png)"></div>
+                    <div ng-if="profile.profilePic" class="profile-pic" ng-style="{'background-image': 'url(' + profile.profilePic + ')'}"></div>
+                    <div ng-if="!profile.profilePic" class="profile-pic" style="background-image: url(img/profile-pic-default.png)"></div>
                     <div class="titles">
-                        <div><span ng-bind="user.name"></span></div>
+                        <div><span ng-bind="profile.name"></span></div>
                         <div class="em-subtitle"><span ng-bind="user.email"></span></div>
                     </div>
                 </a>
