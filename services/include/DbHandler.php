@@ -4,13 +4,12 @@
  * Class to handle all db operations
  * This class will have CRUD methods for database tables
  *
- * @author Ravi Tamada
- * @link URL Tutorial link
+ * @author Chanakya V
  */
-class DbHandler
-{
+class DbHandler {
 
     private $conn;
+    private $defaultCategories = ["Food", "Grocery", "Snacks", "Entertainment", "Shopping", "Vehicle", "Cigarettes", "Alcohol", "Donation", "Cosmetics", "Party" ];
 
     function __construct()
     {
@@ -28,10 +27,8 @@ class DbHandler
      * @param String $email User login email id
      * @param String $password User login password
      */
-    public function createUser($email, $password)
-    {
+    public function createUser($email, $password) {
         require_once 'PassHash.php';
-        $response = array();
 
         // First check if user already existed in db
         if (!$this->isUserExists($email)) {
@@ -46,12 +43,14 @@ class DbHandler
             $stmt->bind_param("sss", $email, $password_hash, $api_key);
 
             $result = $stmt->execute();
-
+            $userId = $this->conn->insert_id;
             $stmt->close();
 
             // Check for successful insertion
             if ($result) {
                 // User successfully inserted
+                // Set default user categories
+                $this->addDefaultCategories($userId);
                 return USER_CREATED_SUCCESSFULLY;
             } else {
                 // Failed to create user
@@ -62,7 +61,6 @@ class DbHandler
             return USER_ALREADY_EXISTED;
         }
 
-        return $response;
     }
 
     /**
@@ -71,8 +69,7 @@ class DbHandler
      * @param String $password User login password
      * @return boolean User login status success/fail
      */
-    public function checkLogin($email, $password)
-    {
+    public function checkLogin($email, $password) {
         // fetching user by email
         $stmt = $this->conn->prepare("SELECT password_hash FROM users WHERE email = ?");
 
@@ -113,8 +110,7 @@ class DbHandler
      * @param String $password User login password
      * @return boolean User login status success/fail
      */
-    public function checkEmail($email)
-    {
+    public function checkEmail($email) {
         // fetching user by email
         $stmt = $this->conn->prepare("SELECT * FROM users WHERE email = ?");
 
@@ -286,8 +282,7 @@ class DbHandler
     /**
      * Fetching profile id by user id
      */
-    public function getProfileIdByUserId($userId)
-    {
+    public function getProfileIdByUserId($userId) {
         $stmt = $this->conn->prepare("SELECT profile_id FROM user_profiles WHERE user_id = ?");
         $stmt->bind_param("i", $userId);
         if ($stmt->execute()) {
@@ -303,8 +298,7 @@ class DbHandler
     /**
      * Generating random Unique MD5 String for user Api key
      */
-    private function generateApiKey()
-    {
+    private function generateApiKey() {
         return md5(uniqid(rand(), true));
     }
 
@@ -379,8 +373,7 @@ class DbHandler
      * @param String $profileId id of the profile
      * @param String $requestParams
      */
-    public function updateProfile($userId, $profileId, $requestParams)
-    {
+    public function updateProfile($userId, $profileId, $requestParams) {
         $stmt = $this->conn->prepare("UPDATE profiles p, user_profiles up set p.name = ?, p.profile_pic = ?, p.country = ?, p.phone = ?, p.dob = ?, p.gender = ?   WHERE p.id = ? AND p.id = up.profile_id AND up.user_id = ?");
 
         isset($requestParams['name']) ? $name = $requestParams['name'] : $name = '';
@@ -416,29 +409,52 @@ class DbHandler
         return $result;
     }
 
-
-    /* ------------- `tasks` table method ------------------ */
+    /* ------------- 'categories' table methods ---------------- */
 
     /**
-     * Creating new task
-     * @param String $user_id user id to whom task belongs to
-     * @param String $task task text
+     * Add default categories
+     * @param String $userId
      */
-    public function createTask($user_id, $task)
-    {
-        $stmt = $this->conn->prepare("INSERT INTO tasks(task) VALUES(?)");
-        $stmt->bind_param("s", $task);
-        $result = $stmt->execute();
+    private function addDefaultCategories($userId) {
+        $stmt = $this->conn->prepare("INSERT INTO categories(name) VALUES(?)");
+
+        foreach($this->defaultCategories as $cat) {
+            $name = $cat;
+            $stmt->bind_param("s", $name);
+            $result = $stmt->execute();
+
+            if ($result) {
+                // category row created
+                // now assign the category to user
+                $categoryId = $this->conn->insert_id;
+                $this->createUserCategory($userId, $categoryId);
+            }
+        }
         $stmt->close();
+    }
+
+    /**
+     * Creating new category
+     * @param String $userId
+     * @param String $requestParams
+     */
+    public function createCategory($userId, $requestParams) {
+        $stmt = $this->conn->prepare("INSERT INTO categories(name) VALUES(?)");
+
+        isset($requestParams['name']) ? $name = $requestParams['name'] : $name = '';
+
+        $stmt->bind_param("s", $name);
+        $result = $stmt->execute();
 
         if ($result) {
-            // task row created
-            // now assign the task to user
-            $new_task_id = $this->conn->insert_id;
-            $res = $this->createUserTask($user_id, $new_task_id);
+            // category row created
+            // now assign the category to user
+            $categoryId = $this->conn->insert_id;
+            $res = $this->createUserCategory($userId, $categoryId);
             if ($res) {
+                //$stmt->close();
                 // task created successfully
-                return $new_task_id;
+                return $categoryId;
             } else {
                 // task failed to create
                 return NULL;
@@ -450,23 +466,144 @@ class DbHandler
     }
 
     /**
-     * Fetching single task
-     * @param String $task_id id of the task
+     * Fetching all user categories
+     * @param String $user_id
      */
-    public function getTask($task_id, $user_id)
+    public function getAllUserCategories($user_id) {
+        $stmt = $this->conn->prepare("SELECT c.id, c.name FROM categories c, user_categories uc WHERE c.id = uc.category_id AND uc.user_id = ?");
+        $stmt->bind_param("i", $user_id);
+        $stmt->execute();
+        $results = $this->dynamicBindResults($stmt);
+        $stmt->close();
+        return $results;
+    }
+
+    /**
+     * Update category
+     * @param String $userId
+     * @param String $categoryId id of the profile
+     * @param String $requestParams
+     */
+    public function updateCategory($userId, $categoryId, $requestParams)
     {
-        $stmt = $this->conn->prepare("SELECT t.id, t.task, t.status, t.created_at from tasks t, user_tasks ut WHERE t.id = ? AND ut.task_id = t.id AND ut.user_id = ?");
-        $stmt->bind_param("ii", $task_id, $user_id);
+        $stmt = $this->conn->prepare("UPDATE categories c, user_categories uc set c.name = ? WHERE c.id = ? AND c.id = up.category_id AND up.user_id = ?");
+
+        isset($requestParams['name']) ? $name = $requestParams['name'] : $name = '';
+
+        $stmt->bind_param("sii", $name, $categoryId, $userId);
+        $stmt->execute();
+        $num_affected_rows = $stmt->affected_rows;
+        $stmt->close();
+        return $num_affected_rows > 0;
+    }
+
+    /**
+     * Delete category
+     * @param String $user_id
+     * @param String $category_id
+     */
+    public function deleteCategory($user_id, $category_id) {
+        $stmt = $this->conn->prepare("DELETE c FROM categories c, user_categories uc WHERE c.id = ? AND uc.category_id = c.id AND uc.user_id = ?");
+        $stmt->bind_param("ii", $category_id, $user_id);
+        $stmt->execute();
+        $num_affected_rows = $stmt->affected_rows;
+        $stmt->close();
+        return $num_affected_rows > 0;
+    }
+
+    /* ------------- `user_categories` table method ------------------ */
+
+    /**
+     * Function to assign category to user
+     * @param String $user_id id of the user
+     * @param String $category_id id of the profile
+     */
+    public function createUserCategory($userId, $categoryId) {
+        $stmt = $this->conn->prepare("INSERT INTO user_categories(user_id, category_id) values(?, ?)");
+        $stmt->bind_param("ii", $userId, $categoryId);
+        $result = $stmt->execute();
+
+        if (false === $result) {
+            die('execute() failed: ' . htmlspecialchars($stmt->error));
+        }
+        $stmt->close();
+        return $result;
+    }
+
+    /* ------------- `currencies` table method ------------------ */
+
+    /**
+     * Fetching all user categories
+     * @param String $user_id
+     */
+    public function getAllCurrencies() {
+        $stmt = $this->conn->prepare("SELECT id, name, code FROM currencies");
+        $stmt->execute();
+        // $currencies = $stmt->get_result(); // used only with 'mysqlnd' driver
+        $results = $this->dynamicBindResults($stmt);
+        $stmt->close();
+        return $results;
+    }
+
+
+    /* ------------- `expenses` table method ------------------ */
+
+    /**
+     * Creating new expense
+     * @param String $userId
+     * @param String $requestParams
+     */
+    public function createExpense($userId, $requestParams) {
+        $stmt = $this->conn->prepare("INSERT INTO expenses(title, amount, notes, date, currency_id, category_id) VALUES(?, ?, ?, ?, ?, ?)");
+
+        isset($requestParams['title']) ? $title = $requestParams['title'] : $title = '';
+        isset($requestParams['amount']) ? $amount = $requestParams['amount'] : $amount = '';
+        isset($requestParams['notes']) ? $notes = $requestParams['notes'] : $notes = '';
+        isset($requestParams['date']) ? $date = $requestParams['date'] : $date = '';
+        isset($requestParams['currency_id']) ? $currency_id = $requestParams['currency_id'] : $currency_id = '';
+        isset($requestParams['category_id']) ? $category_id = $requestParams['category_id'] : $category_id = '';
+
+        $stmt->bind_param("sissii", $title, $amount, $notes, $date, $currency_id, $category_id);
+        $result = $stmt->execute();
+
+        if ($result) {
+            // expense row created
+            // now assign the expense to user
+            $expenseId = $this->conn->insert_id;
+            $res = $this->createUserExpense($userId, $expenseId);
+            if ($res) {
+                // $stmt->close();
+                // expense created successfully
+                return $expenseId;
+            } else {
+                // expense failed to create
+                return NULL;
+            }
+        } else {
+            // expense failed to create
+            return NULL;
+        }
+    }
+
+
+    /**
+     * Fetching single expense
+     * @param String $expense_id id of the task
+     */
+    public function getExpense($expense_id, $user_id) {
+        $stmt = $this->conn->prepare("SELECT e.id, e.title, e.amount, e.notes, e.date, e.currency_id, e.category_id from expenses e, user_expenses ue WHERE e.id = ? AND ue.expense_id = e.id AND ue.user_id = ?");
+        $stmt->bind_param("ii", $expense_id, $user_id);
         if ($stmt->execute()) {
             $res = array();
-            $stmt->bind_result($id, $task, $status, $created_at);
-            // TODO
-            // $task = $stmt->get_result()->fetch_assoc();
+            $stmt->bind_result($id, $title, $amount, $notes, $date, $currencyId, $categoryId);
             $stmt->fetch();
             $res["id"] = $id;
-            $res["task"] = $task;
-            $res["status"] = $status;
-            $res["created_at"] = $created_at;
+            $res["title"] = $title;
+            $res["amount"] = $amount;
+            $res["notes"] = $notes;
+            $res["date"] = $date;
+            $res["currencyId"] = $currencyId;
+            $res["categoryId"] = $categoryId;
             $stmt->close();
             return $res;
         } else {
@@ -478,26 +615,35 @@ class DbHandler
      * Fetching all user tasks
      * @param String $user_id id of the user
      */
-    public function getAllUserTasks($user_id)
-    {
-        $stmt = $this->conn->prepare("SELECT t.* FROM tasks t, user_tasks ut WHERE t.id = ut.task_id AND ut.user_id = ?");
+    public function getAllUserExpenses($user_id) {
+        $stmt = $this->conn->prepare("SELECT e.id, e.title, e.amount, e.notes, e.date, e.currency_id, e.category_id, cu.name AS currencyName, cu.code AS currencyCode, ct.name AS category
+                                      FROM expenses e, currencies cu, categories ct, user_expenses ue WHERE e.id = ue.expense_id
+                                      AND ue.user_id = ? AND cu.id = e.currency_id AND ct.id = e.category_id");
         $stmt->bind_param("i", $user_id);
         $stmt->execute();
-        $tasks = $stmt->get_result();
+        $results = $this->dynamicBindResults($stmt);
         $stmt->close();
-        return $tasks;
+        return $results;
     }
 
     /**
-     * Updating task
-     * @param String $task_id id of the task
-     * @param String $task task text
-     * @param String $status task status
+     * Update expense
+     * @param String $userId
+     * @param String $expenseId
+     * @param String $requestParams
      */
-    public function updateTask($user_id, $task_id, $task, $status)
-    {
-        $stmt = $this->conn->prepare("UPDATE tasks t, user_tasks ut set t.task = ?, t.status = ? WHERE t.id = ? AND t.id = ut.task_id AND ut.user_id = ?");
-        $stmt->bind_param("siii", $task, $status, $task_id, $user_id);
+    public function updateExpense($userId, $expenseId, $requestParams) {
+        $stmt = $this->conn->prepare("UPDATE expenses e, user_expenses ue set e.title = ?, e.amount = ?, e.notes = ?, e.date = ?, e.currency_id = ?, e.category_id = ?
+                                      WHERE e.id = ? AND e.id = ue.expense_id AND ue.user_id = ?");
+
+        isset($requestParams['title']) ? $title = $requestParams['title'] : $title = '';
+        isset($requestParams['amount']) ? $amount = $requestParams['amount'] : $amount = '';
+        isset($requestParams['notes']) ? $notes = $requestParams['notes'] : $notes = '';
+        isset($requestParams['date']) ? $date = $requestParams['date'] : $date = '';
+        isset($requestParams['currency_id']) ? $currency_id = $requestParams['currency_id'] : $currency_id = '';
+        isset($requestParams['category_id']) ? $category_id = $requestParams['category_id'] : $category_id = '';
+
+        $stmt->bind_param("sisiiii", $title, $amount, $date, $currency_id, $category_id, $expenseId, $userId);
         $stmt->execute();
         $num_affected_rows = $stmt->affected_rows;
         $stmt->close();
@@ -505,30 +651,28 @@ class DbHandler
     }
 
     /**
-     * Deleting a task
-     * @param String $task_id id of the task to delete
+     * Delete expense
+     * @param String $expense_id
      */
-    public function deleteTask($user_id, $task_id)
-    {
-        $stmt = $this->conn->prepare("DELETE t FROM tasks t, user_tasks ut WHERE t.id = ? AND ut.task_id = t.id AND ut.user_id = ?");
-        $stmt->bind_param("ii", $task_id, $user_id);
+    public function deleteExpense($user_id, $expense_id) {
+        $stmt = $this->conn->prepare("DELETE e FROM expenses e, user_expenses ue WHERE e.id = ? AND ue.expense_id = e.id AND ue.user_id = ?");
+        $stmt->bind_param("ii", $expense_id, $user_id);
         $stmt->execute();
         $num_affected_rows = $stmt->affected_rows;
         $stmt->close();
         return $num_affected_rows > 0;
     }
 
-    /* ------------- `user_tasks` table method ------------------ */
+    /* ------------- `user_expenses` table method ------------------ */
 
     /**
      * Function to assign a task to user
-     * @param String $user_id id of the user
-     * @param String $task_id id of the task
+     * @param String $user_id id
+     * @param String $expense_id
      */
-    public function createUserTask($user_id, $task_id)
-    {
-        $stmt = $this->conn->prepare("INSERT INTO user_tasks(user_id, task_id) values(?, ?)");
-        $stmt->bind_param("ii", $user_id, $task_id);
+    public function createUserExpense($user_id, $expense_id) {
+        $stmt = $this->conn->prepare("INSERT INTO user_expenses(user_id, expense_id) values(?, ?)");
+        $stmt->bind_param("ii", $user_id, $expense_id);
         $result = $stmt->execute();
 
         if (false === $result) {
@@ -538,6 +682,25 @@ class DbHandler
         return $result;
     }
 
-}
+    /* --------------------- 'Util' Methods ----------------------- */
 
-?>
+    private function dynamicBindResults($stmt) {
+        $results = array();
+        $meta = $stmt->result_metadata();
+        while ( $field = $meta->fetch_field() ) {
+            $parameters[] = &$row[$field->name];
+        }
+        call_user_func_array(array($stmt, 'bind_result'), $parameters);
+        while ( $stmt->fetch() ) {
+            $x = array();
+            foreach( $row as $key => $val ) {
+                $x[$key] = $val;
+            }
+            $results[] = $x;
+        }
+
+        return $results;
+
+    }
+
+}

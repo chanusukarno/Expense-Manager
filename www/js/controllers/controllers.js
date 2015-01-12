@@ -170,7 +170,6 @@ emApp.controller('dashboardCtrl', function ($scope, $http, $state, $cookieStore,
     }
 
     $scope.user = $cookieStore.get('userInfo');
-
     $scope.profile = $cookieStore.get('userProfile');
 
     if(!$scope.profile) {
@@ -190,6 +189,12 @@ emApp.controller('dashboardCtrl', function ($scope, $http, $state, $cookieStore,
         });
     }
 
+    // Fetch Currencies
+    emAPI.getCurrencies();
+
+    // Fetch all user Categories
+    emAPI.getUserCategories();
+
     $state.go('dashboard.expensesMonthly');
 });
 
@@ -205,10 +210,12 @@ emApp.controller('profileCtrl', function ($scope, $state, $cookieStore, $ionicLo
         if(newData != oldData) {
             console.log("Profile updated!");
             $scope.isProfileModified = true;
+        } else {
+            $scope.isProfileModified = false;
         }
     }, true);
 
-    $scope.profile.dobObj = new Date($scope.profile.dob);
+    $scope.profile.dobObj = isValidDate($scope.profile.dob) ? new Date($scope.profile.dob) : "";
 
     // Update profile
     $scope.updateProfile = function() {
@@ -263,10 +270,20 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $f
     }).then(function (popover) {
         $scope.popover = popover;
     });
+
+    // Init categories
+    emAPI.getUserCategories().then(function(cats) {
+        $scope.categories = cats;
+    });
+
     //
     $scope.addExpense = function (expense) {
         console.log(angular.toJson(expense));
-        emAPI.addExpense(expense);
+        emAPI.addExpense(expense).success(function(res) {
+            $ionicLoading.show({ template: 'Expense Added!', noBackdrop: true, duration: 2000 });
+        }).error(function(e) {
+            $ionicLoading.show({ template: 'Error adding expense: ' + e, noBackdrop: true, duration: 2000 });
+        });
         loadExpenses();
         $scope.addExpenseModal.hide();
     };
@@ -278,7 +295,7 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $f
     };
     // Load expenses:
     function loadExpenses() {
-        emAPI.expensesMonthly().then(function (response) {
+        emAPI.getAllExpenses().then(function (response) {
             console.log("emAPI expenses SUCCESS: " + angular.toJson(response));
             $scope.expenses = $filter('orderBy')(response, function (value) {
                 return new Date(value.date);
@@ -294,7 +311,7 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $f
 });
 
 
-emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filter) {
+emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $ionicLoading, $filter) {
 
     // Add expense Modal
     $ionicModal.fromTemplateUrl('partials/modal/addExpense.html', {
@@ -303,10 +320,20 @@ emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filte
     }).then(function (modal) {
         $scope.addExpenseModal = modal;
     });
+
+    // Init categories
+    emAPI.getUserCategories().then(function(cats) {
+        $scope.categories = cats;
+    });
+
     //
     $scope.addExpense = function (expense) {
         console.log(angular.toJson(expense));
-        emAPI.addExpense(expense);
+        emAPI.addExpense(expense).success(function(res) {
+            $ionicLoading.show({ template: 'Expense Added!', noBackdrop: true, duration: 2000 });
+        }).error(function(e) {
+            $ionicLoading.show({ template: 'Error adding expense: ' + e, noBackdrop: true, duration: 2000 });
+        });
         loadExpenses();
         $scope.addExpenseModal.hide();
     };
@@ -318,7 +345,7 @@ emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filte
     };
     // Load expenses:
     function loadExpenses() {
-        emAPI.expenses().then(function (response) {
+        emAPI.getAllExpenses().then(function (response) {
             console.log("emAPI expenses SUCCESS: " + angular.toJson(response));
             $scope.expenses = $filter('orderBy')(response, function (value) {
                 return new Date(value.date);

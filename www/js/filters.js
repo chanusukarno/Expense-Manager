@@ -7,7 +7,7 @@ emApp.filter('html', function($sce) {
 });
 
 // number
-emApp.filter('numshort', function() {
+emApp.filter('numShort', function() {
     return function(number) {
         if (number) {
             console.log(number);

@@ -29,8 +29,7 @@ define('PROVIDER_FACEBOOK', 'facebook');
  * Adding Middle Layer to authenticate every request
  * Checking if the request has valid api key in the 'Authorization' header
  */
-function authenticate(\Slim\Route $route)
-{
+function authenticate(\Slim\Route $route) {
     // Getting request headers
     $headers = apache_request_headers();
     $response = array();
@@ -286,17 +285,17 @@ $app->get('/profile/:id', 'authenticate', function ($profileId) {
         $response = $result;
         $response["error"] = false;
 
-        // change date format
-        if(isset($response["dob"]) && strlen(trim($response["dob"])) > 0) {
-            $sqlDate = $response["dob"];
-            if($sqlDate !== "0000-00-00") {
-                $sqlDate = str_replace('/', '-', $sqlDate);
-                $response["dob"] = strtotime($sqlDate) * 1000;
-            } else {
-                $response["dob"] = "";
-            }
-
-        }
+//        // change date format
+//        if(isset($response["dob"]) && strlen(trim($response["dob"])) > 0) {
+//            $sqlDate = $response["dob"];
+//            if($sqlDate !== "0000-00-00") {
+//                $sqlDate = str_replace('/', '-', $sqlDate);
+//                $response["dob"] = strtotime($sqlDate) * 1000;
+//            } else {
+//                $response["dob"] = "";
+//            }
+//
+//        }
 
         echoResponse(200, $response);
     } else {
@@ -320,14 +319,14 @@ $app->put('/profile/:id', 'authenticate', function ($profileId) use ($app) {
     $db = new DbHandler();
     $response = array();
 
-    // change date format
+    // change date to sql format
     if(isset($request_params["dob"]) && strlen(trim($request_params["dob"])) > 0) {
         $oldDate = $request_params["dob"];
         $oldDate = str_replace('/', '-', $oldDate);
         $request_params["dob"] = date('Y-m-d', strtotime($oldDate));
     }
 
-    // updating task
+    // updating profile
     $result = $db->updateProfile($userId, $profileId, $request_params);
     if ($result) {
         // task updated successfully
@@ -341,155 +340,279 @@ $app->put('/profile/:id', 'authenticate', function ($profileId) use ($app) {
     echoResponse(200, $response);
 });
 
-/* ----------------------- 'Tasks' Methods -------------------------------------
+/* ----------------------- 'categories' Methods -------------------------------------
 
 /**
- * Listing all tasks of particual user
- * method GET
- * url /tasks          
+ * Creating new category
+ * method POST
  */
-$app->get('/tasks', 'authenticate', function () {
+$app->post('/categories', 'authenticate', function () use ($app) {
+    // check for required params
+    $request_params = $app->request->getBody();
+    verifyRequiredParams(array('name'), $request_params);
+
+    $response = array();
+
+    global $userId;
+    $db = new DbHandler();
+
+    // creating new task
+    $categoryId = $db->createCategory($userId, $request_params);
+
+    if ($categoryId != NULL) {
+        $response["error"] = false;
+        $response["message"] = "Category created successfully";
+        $response["categoryId"] = $categoryId;
+        echoResponse(201, $response);
+    } else {
+        $response["error"] = true;
+        $response["message"] = "Failed to create Category. Please try again";
+        echoResponse(200, $response);
+    }
+});
+
+/**
+ * Listing all categories
+ * method GET
+ * url /categories
+ */
+$app->get('/categories', 'authenticate', function () {
     global $userId;
     $response = array();
     $db = new DbHandler();
 
     // fetching all user tasks
-    $result = $db->getAllUserTasks($userId);
+    $result = $db->getAllUserCategories($userId);
 
     $response["error"] = false;
-    $response["tasks"] = array();
-
-    // looping through result and preparing tasks array
-    while ($task = $result->fetch_assoc()) {
-        $tmp = array();
-        $tmp["id"] = $task["id"];
-        $tmp["task"] = $task["task"];
-        $tmp["status"] = $task["status"];
-        $tmp["createdAt"] = $task["created_at"];
-        array_push($response["tasks"], $tmp);
-    }
+    $response["categories"] = $result;
 
     echoResponse(200, $response);
 });
 
 /**
- * Listing single task of particual user
- * method GET
- * url /tasks/:id
- * Will return 404 if the task doesn't belongs to user
+ * Updating category
+ * method PUT
  */
-$app->get('/tasks/:id', 'authenticate', function ($task_id) {
+$app->put('/category/:id', 'authenticate', function ($categoryId) use ($app) {
+    // check for required params
+    $request_params = $app->request->getBody();
+    verifyRequiredParams(array('name'), $request_params);
+
+    global $userId;
+
+    $db = new DbHandler();
+    $response = array();
+
+    // updating task
+    $result = $db->updateCategory($userId, $categoryId, $request_params);
+    if ($result) {
+        // task updated successfully
+        $response["error"] = false;
+        $response["message"] = "Category updated successfully";
+    } else {
+        // task failed to update
+        $response["error"] = true;
+        $response["message"] = "Failed to update category. Please try again!";
+    }
+    echoResponse(200, $response);
+});
+
+/**
+ * Delete category
+ * method DELETE
+ * url /categories
+ */
+$app->delete('/categories/:id', 'authenticate', function ($categoryId) use ($app) {
+    global $userId;
+
+    $db = new DbHandler();
+    $response = array();
+    $result = $db->deleteTask($userId, $categoryId);
+    if ($result) {
+        // category deleted successfully
+        $response["error"] = false;
+        $response["message"] = "Category deleted succesfully";
+    } else {
+        // category failed to delete
+        $response["error"] = true;
+        $response["message"] = "Task failed to category. Please try again!";
+    }
+    echoResponse(200, $response);
+});
+
+/* ----------------------- 'expenses' Methods -------------------------------------
+
+/**
+ * Creating new expense
+ * method POST
+ */
+$app->post('/expenses', 'authenticate', function () use ($app) {
+    // check for required params
+    $request_params = $app->request->getBody();
+    verifyRequiredParams(array('title', 'amount', 'date'), $request_params);
+
+    $response = array();
+
+    global $userId;
+    $db = new DbHandler();
+
+    // creating new task
+    $expenseId = $db->createExpense($userId, $request_params);
+
+    if ($expenseId != NULL) {
+        $response["error"] = false;
+        $response["message"] = "Expense created successfully";
+        $response["expenseId"] = $expenseId;
+        echoResponse(201, $response);
+    } else {
+        $response["error"] = true;
+        $response["message"] = "Failed to create Expense. Please try again";
+        echoResponse(200, $response);
+    }
+});
+
+/**
+ * Get user expense for id
+ * method GET
+ * url /expenses/:id
+ */
+$app->get('/expenses/:id', 'authenticate', function ($expenseId) {
     global $userId;
     $response = array();
     $db = new DbHandler();
 
     // fetch task
-    $result = $db->getTask($task_id, $userId);
+    $result = $db->getExpense($userId, $expenseId);
 
     if ($result != NULL) {
+        $response = $result;
         $response["error"] = false;
-        $response["id"] = $result["id"];
-        $response["task"] = $result["task"];
-        $response["status"] = $result["status"];
-        $response["createdAt"] = $result["created_at"];
+
+        // change date format
+        if(isset($response["date"]) && strlen(trim($response["date"])) > 0) {
+            $sqlDate = $response["date"];
+            if($sqlDate !== "0000-00-00") {
+                $sqlDate = str_replace('/', '-', $sqlDate);
+                $response["date"] = strtotime($sqlDate) * 1000;
+            } else {
+                $response["date"] = "";
+            }
+
+        }
+
         echoResponse(200, $response);
     } else {
         $response["error"] = true;
-        $response["message"] = "The requested resource doesn't exists";
+        $response["message"] = "The requested resource doesn't exist";
         echoResponse(404, $response);
     }
 });
 
 /**
- * Creating new task in db
- * method POST
- * params - name
- * url - /tasks/
+ * Get all expenses
+ * method GET
+ * url /categories
  */
-//$app->post('/tasks', 'authenticate', function() use ($app) {
-//    // check for required params
-//    verifyRequiredParams(array('task'));
-//
-//    $response = array();
-//    $task = $app->request->post('task');
-//
-//    global $userId;
-//    $db = new DbHandler();
-//
-//    // creating new task
-//    $task_id = $db->createTask($userId, $task);
-//
-//    if ($task_id != NULL) {
-//        $response["error"] = false;
-//        $response["message"] = "Task created successfully";
-//        $response["task_id"] = $task_id;
-//        echoResponse(201, $response);
-//    } else {
-//        $response["error"] = true;
-//        $response["message"] = "Failed to create task. Please try again";
-//        echoResponse(200, $response);
-//    }
-//});
+$app->get('/expenses', 'authenticate', function () {
+    global $userId;
+    $response = array();
+    $db = new DbHandler();
+
+    // fetching all user tasks
+    $result = $db->getAllUserExpenses($userId);
+
+    $response["error"] = false;
+    $response["expenses"] = $result;
+
+    echoResponse(200, $response);
+});
 
 /**
- * Updating existing task
+ * Updating expense
  * method PUT
- * params task, status
- * url - /tasks/:id
  */
-//$app->put('/tasks/:id', 'authenticate', function($task_id) use($app) {
-//    // check for required params
-//    verifyRequiredParams(array('task', 'status'));
-//
-//    global $userId;
-//    $task = $app->request->put('task');
-//    $status = $app->request->put('status');
-//
-//    $db = new DbHandler();
-//    $response = array();
-//
-//    // updating task
-//    $result = $db->updateTask($userId, $task_id, $task, $status);
-//    if ($result) {
-//        // task updated successfully
-//        $response["error"] = false;
-//        $response["message"] = "Task updated successfully";
-//    } else {
-//        // task failed to update
-//        $response["error"] = true;
-//        $response["message"] = "Task failed to update. Please try again!";
-//    }
-//    echoResponse(200, $response);
-//});
+$app->put('/expenses/:id', 'authenticate', function ($expenseId) use ($app) {
+    // check for required params
+    $request_params = $app->request->getBody();
+    verifyRequiredParams(array('title', 'amount', 'date'), $request_params);
 
-/**
- * Deleting task. Users can delete only their tasks
- * method DELETE
- * url /tasks
- */
-$app->delete('/tasks/:id', 'authenticate', function ($task_id) use ($app) {
     global $userId;
 
     $db = new DbHandler();
     $response = array();
-    $result = $db->deleteTask($userId, $task_id);
+
+    // change date format
+    if(isset($request_params["date"]) && strlen(trim($request_params["date"])) > 0) {
+        $oldDate = $request_params["date"];
+        $oldDate = str_replace('/', '-', $oldDate);
+        $request_params["date"] = date('Y-m-d', strtotime($oldDate));
+    }
+
+    // updating profile
+    $result = $db->updateExpense($userId, $expenseId, $request_params);
     if ($result) {
-        // task deleted successfully
+        // task updated successfully
         $response["error"] = false;
-        $response["message"] = "Task deleted succesfully";
+        $response["message"] = "Profile updated successfully";
     } else {
-        // task failed to delete
+        // task failed to update
         $response["error"] = true;
-        $response["message"] = "Task failed to delete. Please try again!";
+        $response["message"] = "Failed to update Profile. Please try again!";
     }
     echoResponse(200, $response);
 });
 
 /**
+ * Delete expense
+ * method DELETE
+ * url /expenses
+ */
+$app->delete('/expenses/:id', 'authenticate', function ($expense_id) use ($app) {
+    global $userId;
+
+    $db = new DbHandler();
+    $response = array();
+    $result = $db->deleteExpense($userId, $expense_id);
+    if ($result) {
+        // expense deleted successfully
+        $response["error"] = false;
+        $response["message"] = "Expense deleted successfully";
+    } else {
+        // expense failed to delete
+        $response["error"] = true;
+        $response["message"] = "Failed to delete expense. Please try again!";
+    }
+    echoResponse(200, $response);
+});
+
+/* ----------------------- 'Currencies' Methods -------------------------------------
+
+/**
+ * Get all currencies
+ * method GET
+ * url /currencies
+ */
+$app->get('/currencies', 'authenticate', function () {
+    global $userId;
+    $response = array();
+    $db = new DbHandler();
+
+    // fetching all user tasks
+    $result = $db->getAllCurrencies($userId);
+
+    $response["error"] = false;
+    $response["currencies"] = $result;
+
+    echoResponse(200, $response);
+});
+
+/* ----------------------- 'Util' Methods -------------------------------------
+
+/**
  * Verifying required params posted or not
  */
-function verifyRequiredParams($required_fields, $request_params)
-{
+function verifyRequiredParams($required_fields, $request_params) {
     $error = false;
     $error_fields = "";
 
@@ -515,8 +638,7 @@ function verifyRequiredParams($required_fields, $request_params)
 /**
  * Validating email address
  */
-function validateEmail($email)
-{
+function validateEmail($email) {
     $app = \Slim\Slim::getInstance();
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $response["error"] = true;
@@ -529,8 +651,7 @@ function validateEmail($email)
 /**
  * Validate provider name
  */
-function validateProviderName($providerName)
-{
+function validateProviderName($providerName) {
     $app = \Slim\Slim::getInstance();
     if ($providerName !== PROVIDER_FACEBOOK && $providerName !== PROVIDER_GOOGLE) {
         $response["error"] = true;
@@ -545,8 +666,7 @@ function validateProviderName($providerName)
 /**
  * echoing user details
  */
-function getUserDetails($db, $email)
-{
+function getUserDetails($db, $email) {
     $response = array();
     $user = $db->getUserByEmail($email);
 
@@ -569,8 +689,7 @@ function getUserDetails($db, $email)
  * @param String $status_code Http response code
  * @param String $response Json response
  */
-function echoResponse($status_code, $response)
-{
+function echoResponse($status_code, $response) {
     $app = \Slim\Slim::getInstance();
     // Http response code
     $app->status($status_code);

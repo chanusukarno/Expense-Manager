@@ -9,6 +9,9 @@ emApp.constant('emConstants', {
     "LOGIN": "login",
     "PROFILE": "profile",
     "REGISTER": "register",
+    "EXPENSES": "expenses",
+    "CURRENCIES": "currencies",
+    "CATEGORIES": "categories",
     "PROVIDER_GOOGLE": "google",
     "PROVIDER_FACEBOOK": "facebook"
 });

@@ -37,13 +37,13 @@
 
         <ion-list>
             <ion-item class="em-item" ng-repeat="expense in filtered = (expenses| filter:query)">
-                <span class="currency" ng-bind-html="expense.currency | html"></span>
-                <span class="amount">{{expense.amount| numshort}}</span>
+                <span class="currency" ng-bind-html="expense.currencyCode | html"></span>
+                <span class="amount">{{expense.amount| numShort}}</span>
                 <h2 class="title">{{expense.title}}</h2>
                 <p class="subtitle">
                     <span>{{expense.category}} &nbsp;|&nbsp;</span>
-                    <!-- <span data-am-time-ago="expense.date"></span> -->
-                    <span ng-bind="expense.date | date: ''"></span>
+                    <span data-am-time-ago="expense.date + ' UTC'"></span>
+                    <!-- <span ng-bind="expense.date | date: ''"></span> -->
                 </p>
                 <p class="notes">{{expense.notes}}</p>
 
