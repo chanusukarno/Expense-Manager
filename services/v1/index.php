@@ -542,12 +542,12 @@ $app->put('/expenses/:id', 'authenticate', function ($expenseId) use ($app) {
     $db = new DbHandler();
     $response = array();
 
-    // change date format
-    if(isset($request_params["date"]) && strlen(trim($request_params["date"])) > 0) {
-        $oldDate = $request_params["date"];
-        $oldDate = str_replace('/', '-', $oldDate);
-        $request_params["date"] = date('Y-m-d', strtotime($oldDate));
-    }
+//    // change date format
+//    if(isset($request_params["date"]) && strlen(trim($request_params["date"])) > 0) {
+//        $oldDate = $request_params["date"];
+//        $oldDate = str_replace('/', '-', $oldDate);
+//        $request_params["date"] = date('Y-m-d', strtotime($oldDate));
+//    }
 
     // updating profile
     $result = $db->updateExpense($userId, $expenseId, $request_params);

@@ -31,12 +31,13 @@
     </ion-header-bar>
 
     <ion-content ng-class="showCal ? 'has-cal' : 'has - subheader'">
-        <!--        <ion-refresher on-refresh="refresh()">
-                </ion-refresher>-->
+        <!-- <ion-refresher on-refresh="refresh()"></ion-refresher> -->
         <ion-item class="em-results em-small text-center" ng-if="query.length > 0">{{filtered.length}} Results found</ion-item>
 
         <ion-list>
-            <ion-item class="em-item" ng-repeat="expense in filtered = (expenses| filter:query)">
+            <ion-item class="em-item item-remove-animate"
+                      ng-repeat="expense in filtered = (expenses| filter:query) track by $index"
+                      ng-click="addExpenseModal.show(); initEditExp(expense)">
                 <span class="currency" ng-bind-html="expense.currencyCode | html"></span>
                 <span class="amount">{{expense.amount| numShort}}</span>
                 <h2 class="title">{{expense.title}}</h2>
@@ -48,13 +49,13 @@
                 <p class="notes">{{expense.notes}}</p>
 
                 <!-- slide options -->
-                <ion-option-button class="button-positive" ng-click="share(item)">Edit</ion-option-button>
-                <ion-option-button class="button-assertive" ng-click="edit(item)">Delete</ion-option-button>
+                <!-- <ion-option-button class="button-positive" ng-click="share(item)">Edit</ion-option-button> -->
+                <ion-option-button class="button-assertive" ng-click="deleteExpense(expense.id)">Delete</ion-option-button>
 
             </ion-item>
-            <ion-item class="padding text-center" ng-if="!expenses && error">
-                <h3>Request Failed</h3>
-                <small>Check that you are online. If you are, the server may be offline.</small>
+            <ion-item class="padding text-center" ng-if="expenses && expenses.length === 0">
+                <h3>No Expenses Added!</h3>
+                <small>Click the Round plus button below to get Started!</small>
             </ion-item>
         </ion-list>
     </ion-content>

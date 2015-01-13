@@ -8,8 +8,7 @@
         <ion-list show-delete="data.showDelete" show-reorder="data.showReorder">
 
             <ion-item ng-repeat="item in items" 
-                      item="item"
-                      href="#/item/{{item.id}}" class="item-remove-animate">{{item.title}}
+                      class="item-remove-animate">{{item.title}}
                 
                 <ion-option-button class="button-calm" ng-click="showCategoryEditPopup('edit', item)">Edit</ion-option-button>
                 <ion-option-button class="button-assertive" ng-click="showCategoryDeletePopup(item)">Delete</ion-option-button>

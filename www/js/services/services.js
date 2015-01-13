@@ -119,6 +119,7 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
 
         // Add new Expense
         addExpense: function (request) {
+            var q = $q.defer();
             // Transform request:
             var newExp = angular.copy(request);
             newExp.currencyName = "Rupee"; // TODO Defaulting to Rupee for now
@@ -127,9 +128,77 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
             newExp.category_id = newExp.category.id;
             newExp.date = new Date(newExp.date).toMysqlFormat();
             newExp.category = newExp.category.name;
-            // Also push to Expenses array for local use
-            ALL_EXPENSES.push(newExp);
-            return $http.post(emConstants.BASE_URL + emConstants.EXPENSES, newExp, config);
+
+            console.log("addExpense REQUEST: " + angular.toJson(newExp));
+            $http.post(emConstants.BASE_URL + emConstants.EXPENSES, newExp, config)
+                .then(function(result) {
+                    if (!validateResponse(result) && result.data.error) {
+                        q.reject(new Error('Invalid Response'));
+                    } else {
+                        // update expense id
+                        newExp.id = result.data.expenseId;
+                        // Also push to ALL_EXPENSES for local use
+                        ALL_EXPENSES.push(newExp);
+                        q.resolve(result.data);
+                    }
+                }, function(err) {
+                    console.log('expenses/ Failed: ' + err);
+                    q.reject(err);
+
+                });
+            return q.promise;
+        },
+
+        // Add new Expense
+        updateExpense: function (updatedExp) {
+            var q = $q.defer();
+            // Transform request:
+            var upExp = angular.copy(updatedExp);
+            upExp.currencyName = "Rupee"; // TODO Defaulting to Rupee for now
+            upExp.currencyCode = "&#x20B9;"; // TODO Defaulting to Rupee for now
+            upExp.currency_id = 2; // TODO Defaulting to Rupee for now
+            upExp.category_id = upExp.category.id;
+            upExp.date = new Date(upExp.date).toMysqlFormat();
+            upExp.category = upExp.category.name;
+
+            console.log("updateExpense REQUEST: " + angular.toJson(upExp));
+            $http.put(emConstants.BASE_URL + emConstants.EXPENSES + "/" + upExp.id, upExp, config)
+                .then(function(result) {
+                    if (!validateResponse(result) && result.data.error) {
+                        q.reject(new Error('Invalid Response'));
+                    } else {
+                        // Also update in ALL_EXPENSES for local use
+                        ALL_EXPENSES.splice(indexById(ALL_EXPENSES, upExp.id), 1, upExp);
+                        q.resolve(result.data);
+                    }
+                }, function(err) {
+                    console.log('expenses/ Failed: ' + err);
+                    q.reject(err);
+
+                });
+            return q.promise;
+        },
+
+        // profile retrieve
+        deleteExpense: function (expId) {
+            var q = $q.defer();
+            console.log("deleteExpense REQUEST: " + angular.toJson(expId));
+            $http.delete(emConstants.BASE_URL + emConstants.EXPENSES + "/" + expId, config)
+                .then(function(result) {
+                    if (!validateResponse(result) && result.data.error) {
+                        q.reject(new Error('Invalid Response'));
+                    } else {
+                        console.log("Expense DELETED successfully!");
+                        // Delete expense from the local Data
+                        ALL_EXPENSES.splice(indexById(ALL_EXPENSES, expId), 1);
+                        q.resolve(result.data);
+                    }
+                }, function(err) {
+                    console.log('expenses/ Failed: ' + err);
+                    q.reject(err);
+
+                });
+            return q.promise;
         },
 
         expensesMonthly: function () {
@@ -137,14 +206,14 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
             if (!expensesMonthly) {
                 $http.get(apiURL + 'data/expensesMonthly.json', config)
                     .then(function (result) {
-                        if (!validateResponse(result) && !result.data.error) {
+                        if (!validateResponse(result) && result.data.error) {
                             q.reject(new Error('Invalid Response'));
                         } else {
                             expensesMonthly = result.data;
                             q.resolve(result.data);
                         }
                     }, function (err) {
-                        console.log('expenses/ Failed');
+                        console.log('expenses/ Failed: ' + err);
                         q.reject(err);
                     });
             } else {
@@ -157,11 +226,26 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
 });
 
 // Utility
-function getCategoryByName(catName) {
-    angular.forEach(CATEGORIES, function(d) {
-        if(d.name === catName)
-        return d.id;
+emApp.factory('Toast', function ($ionicLoading) {
+    return {
+        showToast: function(message) {
+            if(typeof message == 'array' || typeof message == 'object') {
+                message = angular.toJson(message);
+            }
+            $ionicLoading.show({template: message, noBackdrop: true, duration: 2000});
+        }
+    }
+});
 
-    })
+// get item index in array by 'id'
+function indexById(array, id) {
+    var index = -1;
+    for(var i = 0; i < array.length; i++ ){
+        if(array[i].id === id) {
+            index = i;
+            break;
+        }
+    }
+    return index;
 }
 

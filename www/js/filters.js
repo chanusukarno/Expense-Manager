@@ -10,8 +10,7 @@ emApp.filter('html', function($sce) {
 emApp.filter('numShort', function() {
     return function(number) {
         if (number) {
-            console.log(number);
-            abs = Math.abs(number);
+            var abs = Math.abs(number);
             if (abs >= Math.pow(10, 12))
                 //trillion
                 number = (number / Math.pow(10, 12)).toFixed(1) + "t";
@@ -25,7 +24,6 @@ emApp.filter('numShort', function() {
                 // thousand
                 number = (number / Math.pow(10, 3)).toFixed(1) + "k";
             }
-
             return number;
         }
     };

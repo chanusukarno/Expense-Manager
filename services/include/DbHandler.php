@@ -643,7 +643,7 @@ class DbHandler {
         isset($requestParams['currency_id']) ? $currency_id = $requestParams['currency_id'] : $currency_id = '';
         isset($requestParams['category_id']) ? $category_id = $requestParams['category_id'] : $category_id = '';
 
-        $stmt->bind_param("sisiiii", $title, $amount, $date, $currency_id, $category_id, $expenseId, $userId);
+        $stmt->bind_param("sissiiii", $title, $amount, $notes, $date, $currency_id, $category_id, $expenseId, $userId);
         $stmt->execute();
         $num_affected_rows = $stmt->affected_rows;
         $stmt->close();
