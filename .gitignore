@@ -6,3 +6,4 @@ platforms/
 plugins/
 nbproject/
 .idea/
+.DS_Store
