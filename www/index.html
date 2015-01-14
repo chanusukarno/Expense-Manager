@@ -3,7 +3,7 @@
     <head>
         <meta charset="utf-8">
         <meta name="viewport" content="initial-scale=1, maximum-scale=1, user-scalable=no, width=device-width">
-        <title></title>
+        <title>Expense Manager</title>
 
         <!-- <link href="lib/ionic/css/ionic.css" rel="stylesheet"> -->
         <!-- IF using Sass (run gulp sass first), then uncomment below and remove the CSS includes above-->
@@ -23,7 +23,8 @@
             // Facebbok OAuth init
             window.fbAsyncInit = function () {
                 FB.init({
-                    appId: '1529225140628860', // App ID
+                    // appId: '1529225140628860', // App ID EM
+                    appId: '895959603787838', // App ID Local
                     status: true, // check login status
                     cookie: true, // enable cookies to allow the server to access the session
                     xfbml: true  // parse XFBML
@@ -55,7 +56,8 @@
             })();
 
             function onLoadCallback() {
-                gapi.client.setApiKey('AIzaSyBZCpRB7HY-1pwgok2qeJxgPk_JJjrtE10');
+                // gapi.client.setApiKey('AIzaSyBZCpRB7HY-1pwgok2qeJxgPk_JJjrtE10'); // API KEY EM
+                gapi.client.setApiKey('AIzaSyBLdPqtLIRQVlOGGTDtMMl56wZg-_tYp74'); // API KEY LOCAL
                 gapi.client.load('plus', 'v1', function () {
                 });
             }

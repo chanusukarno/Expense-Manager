@@ -111,7 +111,8 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
     // Google Plus Login
     $scope.gplusLogin = function () {
         var myParams = {
-            'clientid': '673925917245-6lmqmafbiiufbm069mbqvq2tidr5ts3i.apps.googleusercontent.com',
+            // 'clientid': '673925917245-6lmqmafbiiufbm069mbqvq2tidr5ts3i.apps.googleusercontent.com', // Client ID EM
+            'clientid': '509941695232-lp7p7l5ms37eu8fdkifbna8sb252evt7.apps.googleusercontent.com', // Client ID Local
             'cookiepolicy': 'single_host_origin',
             'callback': loginCallback,
             'approvalprompt': 'force',
