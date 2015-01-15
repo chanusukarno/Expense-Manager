@@ -88,7 +88,11 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     user.provider_name = emConstants.PROVIDER_FACEBOOK;
                     user.name = response.name;
                     user.email = response.email;
-                    response.gender.toString().toLowerCase() === 'male' ? user.gender = 'M' : user.gender = 'F';
+                    if(response.gender) {
+                        response.gender.toString().toLowerCase() === 'male' ? user.gender = 'M' : user.gender = 'F';
+                    } else {
+                        user.gender = '';
+                    }
                     user.profilePic = picResponse.data.url;
                     // send user data to DB
                     emAPI.oauth(user).success(function (response) {
@@ -139,7 +143,11 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     user.provider_name = emConstants.PROVIDER_GOOGLE;
                     user.name = resp.displayName;
                     user.email = userEmail;
-                    resp.gender.toString().toLowerCase() === 'male' ? user.gender = 'M' : user.gender = 'F';
+                    if(resp.gender) {
+                        resp.gender.toString().toLowerCase() === 'male' ? user.gender = 'M' : user.gender = 'F';
+                    } else {
+                        user.gender = '';
+                    }
                     user.profilePic = resp.image.url;
                     // send user data to DB
                     emAPI.oauth(user).success(function (response) {
