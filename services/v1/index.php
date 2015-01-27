@@ -31,9 +31,10 @@ define('PROVIDER_FACEBOOK', 'facebook');
  */
 function authenticate(\Slim\Route $route) {
     // Getting request headers
-    $headers = apache_request_headers();
+
     $response = array();
     $app = \Slim\Slim::getInstance();
+    $headers = $app->request->headers();
 
     // Verifying Authorization Header
     if (isset($headers['Authorization'])) {
@@ -472,42 +473,42 @@ $app->post('/expenses', 'authenticate', function () use ($app) {
     }
 });
 
-/**
- * Get user expense for id
- * method GET
- * url /expenses/:id
- */
-$app->get('/expenses/:id', 'authenticate', function ($expenseId) {
-    global $userId;
-    $response = array();
-    $db = new DbHandler();
-
-    // fetch task
-    $result = $db->getExpense($userId, $expenseId);
-
-    if ($result != NULL) {
-        $response = $result;
-        $response["error"] = false;
-
-        // change date format
-        if(isset($response["date"]) && strlen(trim($response["date"])) > 0) {
-            $sqlDate = $response["date"];
-            if($sqlDate !== "0000-00-00") {
-                $sqlDate = str_replace('/', '-', $sqlDate);
-                $response["date"] = strtotime($sqlDate) * 1000;
-            } else {
-                $response["date"] = "";
-            }
-
-        }
-
-        echoResponse(200, $response);
-    } else {
-        $response["error"] = true;
-        $response["message"] = "The requested resource doesn't exist";
-        echoResponse(404, $response);
-    }
-});
+///**
+// * Get user expense for id
+// * method GET
+// * url /expenses/:id
+// */
+//$app->get('/expenses/:id', 'authenticate', function ($expenseId) {
+//    global $userId;
+//    $response = array();
+//    $db = new DbHandler();
+//
+//    // fetch task
+//    $result = $db->getExpense($userId, $expenseId);
+//
+//    if ($result != NULL) {
+//        $response = $result;
+//        $response["error"] = false;
+//
+//        // change date format
+//        if(isset($response["date"]) && strlen(trim($response["date"])) > 0) {
+//            $sqlDate = $response["date"];
+//            if($sqlDate !== "0000-00-00") {
+//                $sqlDate = str_replace('/', '-', $sqlDate);
+//                $response["date"] = strtotime($sqlDate) * 1000;
+//            } else {
+//                $response["date"] = "";
+//            }
+//
+//        }
+//
+//        echoResponse(200, $response);
+//    } else {
+//        $response["error"] = true;
+//        $response["message"] = "The requested resource doesn't exist";
+//        echoResponse(404, $response);
+//    }
+//});
 
 /**
  * Get all expenses
@@ -521,6 +522,29 @@ $app->get('/expenses', 'authenticate', function () {
 
     // fetching all user tasks
     $result = $db->getAllUserExpenses($userId);
+
+    $response["error"] = false;
+    $response["expenses"] = $result;
+
+    echoResponse(200, $response);
+});
+
+/**
+ * Get all borrows and lends
+ * method GET
+ * url /categories
+ */
+$app->get('/expenses/:type', 'authenticate', function ($type) {
+    global $userId;
+    $response = array();
+    $db = new DbHandler();
+
+    // fetching all user tasks
+    if($type === 'recur') {
+        $result = $db->getAllUserRecurExpenses($userId);
+    } else if($type === 'borrowslends') {
+        $result = $db->getAllUserBorrowsAndLends($userId);
+    }
 
     $response["error"] = false;
     $response["expenses"] = $result;

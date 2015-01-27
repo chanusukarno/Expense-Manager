@@ -9,9 +9,15 @@ emApp.constant('emConstants', {
     "LOGIN": "login",
     "PROFILE": "profile",
     "REGISTER": "register",
-    "EXPENSES": "expenses",
+    "API_EXPENSES": "expenses",
+    "API_EXPENSES_RECUR": "expenses/recur",
+    "API_EXPENSES_BORROWS_LENDS": "expenses/borrowslends",
     "CURRENCIES": "currencies",
     "CATEGORIES": "categories",
     "PROVIDER_GOOGLE": "google",
-    "PROVIDER_FACEBOOK": "facebook"
+    "PROVIDER_FACEBOOK": "facebook",
+    "EXPENSE_GENERAL": "general",
+    "EXPENSE_RECUR": "recur",
+    "EXPENSE_BORROW": "borrow",
+    "EXPENSE_LENT": "lend"
 });

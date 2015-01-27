@@ -9,8 +9,7 @@
 class DbHandler {
 
     private $conn;
-    private $defaultCategories = ["Food", "Grocery", "Snacks", "Entertainment", "Shopping", "Vehicle", "Cigarettes", "Alcohol", "Donation", "Cosmetics", "Party" ];
-
+    private $defaultCategories = array("Food", "Grocery", "Snacks", "Entertainment", "Shopping", "Vehicle", "Cigarettes", "Alcohol", "Donation", "Cosmetics", "Party");
     function __construct()
     {
         require_once dirname(__FILE__) . '/DbConnect.php';
@@ -554,16 +553,17 @@ class DbHandler {
      * @param String $requestParams
      */
     public function createExpense($userId, $requestParams) {
-        $stmt = $this->conn->prepare("INSERT INTO expenses(title, amount, notes, date, currency_id, category_id) VALUES(?, ?, ?, ?, ?, ?)");
+        $stmt = $this->conn->prepare("INSERT INTO expenses(title, amount, notes, date, currency_id, category_id, type) VALUES(?, ?, ?, ?, ?, ?, ?)");
 
         isset($requestParams['title']) ? $title = $requestParams['title'] : $title = '';
         isset($requestParams['amount']) ? $amount = $requestParams['amount'] : $amount = '';
         isset($requestParams['notes']) ? $notes = $requestParams['notes'] : $notes = '';
         isset($requestParams['date']) ? $date = $requestParams['date'] : $date = '';
         isset($requestParams['currency_id']) ? $currency_id = $requestParams['currency_id'] : $currency_id = '';
-        isset($requestParams['category_id']) ? $category_id = $requestParams['category_id'] : $category_id = '';
+        isset($requestParams['category_id']) ? $category_id = $requestParams['category_id'] : $category_id = NULL;
+        isset($requestParams['type']) ? $type = $requestParams['type'] : $type = '';
 
-        $stmt->bind_param("sissii", $title, $amount, $notes, $date, $currency_id, $category_id);
+        $stmt->bind_param("sissiis", $title, $amount, $notes, $date, $currency_id, $category_id, $type);
         $result = $stmt->execute();
 
         if ($result) {
@@ -591,11 +591,11 @@ class DbHandler {
      * @param String $expense_id id of the task
      */
     public function getExpense($expense_id, $user_id) {
-        $stmt = $this->conn->prepare("SELECT e.id, e.title, e.amount, e.notes, e.date, e.currency_id, e.category_id from expenses e, user_expenses ue WHERE e.id = ? AND ue.expense_id = e.id AND ue.user_id = ?");
+        $stmt = $this->conn->prepare("SELECT e.id, e.title, e.amount, e.notes, e.date, e.currency_id, e.category_id, e.type from expenses e, user_expenses ue WHERE e.id = ? AND ue.expense_id = e.id AND ue.user_id = ?");
         $stmt->bind_param("ii", $expense_id, $user_id);
         if ($stmt->execute()) {
             $res = array();
-            $stmt->bind_result($id, $title, $amount, $notes, $date, $currencyId, $categoryId);
+            $stmt->bind_result($id, $title, $amount, $notes, $date, $currencyId, $categoryId, $type);
             $stmt->fetch();
             $res["id"] = $id;
             $res["title"] = $title;
@@ -604,6 +604,7 @@ class DbHandler {
             $res["date"] = $date;
             $res["currencyId"] = $currencyId;
             $res["categoryId"] = $categoryId;
+            $res["type"] = $type;
             $stmt->close();
             return $res;
         } else {
@@ -612,14 +613,48 @@ class DbHandler {
     }
 
     /**
-     * Fetching all user tasks
+     * Fetching all user expenses
      * @param String $user_id id of the user
      */
     public function getAllUserExpenses($user_id) {
-        $stmt = $this->conn->prepare("SELECT e.id, e.title, e.amount, e.notes, e.date, e.currency_id, e.category_id, cu.name AS currencyName, cu.code AS currencyCode, ct.name AS category
-                                      FROM expenses e, currencies cu, categories ct, user_expenses ue WHERE e.id = ue.expense_id
+        $typeGeneral = EXPENSES_GENERAL;
+        $stmt = $this->conn->prepare("SELECT e.id, e.title, e.amount, e.notes, e.date, e.currency_id, e.category_id, e.type, cu.name AS currencyName, cu.code AS currencyCode, ct.name AS category
+                                      FROM expenses e, currencies cu, categories ct, user_expenses ue WHERE e.type = ? AND e.id = ue.expense_id
                                       AND ue.user_id = ? AND cu.id = e.currency_id AND ct.id = e.category_id");
-        $stmt->bind_param("i", $user_id);
+        $stmt->bind_param("si", $typeGeneral, $user_id);
+        $stmt->execute();
+        $results = $this->dynamicBindResults($stmt);
+        $stmt->close();
+        return $results;
+    }
+
+    /**
+     * Fetching all user borrows and lends
+     * @param String $user_id id of the user
+     */
+    public function getAllUserBorrowsAndLends($user_id) {
+        $typeBorrow = EXPENSES_BORROW;
+        $typeLend = EXPENSES_LEND;
+        $stmt = $this->conn->prepare("SELECT e.id, e.title, e.amount, e.notes, e.date, e.currency_id, e.type, e.status, cu.name AS currencyName, cu.code AS currencyCode
+                                      FROM expenses e, currencies cu, user_expenses ue WHERE e.id = ue.expense_id
+                                      AND ue.user_id = ? AND cu.id = e.currency_id AND (e.type = ? OR e.type = ?)");
+        $stmt->bind_param("iss", $user_id, $typeLend, $typeBorrow);
+        $stmt->execute();
+        $results = $this->dynamicBindResults($stmt);
+        $stmt->close();
+        return $results;
+    }
+
+    /**
+     * Fetching all user recur Expenses
+     * @param String $user_id id of the user
+     */
+    public function getAllUserRecurExpenses($user_id) {
+        $typeRecur = EXPENSES_RECUR;
+        $stmt = $this->conn->prepare("SELECT e.id, e.title, e.amount, e.notes, e.date, e.currency_id, e.category_id, e.type, cu.name AS currencyName, cu.code AS currencyCode, ct.name AS category
+                                      FROM expenses e, currencies cu, categories ct, user_expenses ue WHERE e.id = ue.expense_id
+                                      AND ue.user_id = ? AND cu.id = e.currency_id AND ct.id = e.category_id AND e.type = ?");
+        $stmt->bind_param("is", $user_id, $typeRecur);
         $stmt->execute();
         $results = $this->dynamicBindResults($stmt);
         $stmt->close();
@@ -633,7 +668,7 @@ class DbHandler {
      * @param String $requestParams
      */
     public function updateExpense($userId, $expenseId, $requestParams) {
-        $stmt = $this->conn->prepare("UPDATE expenses e, user_expenses ue set e.title = ?, e.amount = ?, e.notes = ?, e.date = ?, e.currency_id = ?, e.category_id = ?
+        $stmt = $this->conn->prepare("UPDATE expenses e, user_expenses ue set e.title = ?, e.amount = ?, e.notes = ?, e.date = ?, e.currency_id = ?, e.category_id = ?, e.status = ?
                                       WHERE e.id = ? AND e.id = ue.expense_id AND ue.user_id = ?");
 
         isset($requestParams['title']) ? $title = $requestParams['title'] : $title = '';
@@ -641,9 +676,10 @@ class DbHandler {
         isset($requestParams['notes']) ? $notes = $requestParams['notes'] : $notes = '';
         isset($requestParams['date']) ? $date = $requestParams['date'] : $date = '';
         isset($requestParams['currency_id']) ? $currency_id = $requestParams['currency_id'] : $currency_id = '';
-        isset($requestParams['category_id']) ? $category_id = $requestParams['category_id'] : $category_id = '';
+        isset($requestParams['category_id']) ? $category_id = $requestParams['category_id'] : $category_id = NULL;
+        isset($requestParams['status']) ? $status = $requestParams['status'] : $status = 0;
 
-        $stmt->bind_param("sissiiii", $title, $amount, $notes, $date, $currency_id, $category_id, $expenseId, $userId);
+        $stmt->bind_param("sissiiiii", $title, $amount, $notes, $date, $currency_id, $category_id, $status, $expenseId, $userId);
         $stmt->execute();
         $num_affected_rows = $stmt->affected_rows;
         $stmt->close();

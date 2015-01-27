@@ -151,8 +151,8 @@ hr {
     padding-top: 5px;
 }
 
-.em-item .item-content {
-    padding: 10px 20px 10px 15px;
+.em-item {
+    padding: 0px 0px 0px 8px;
 }
 
 .item .notes {
@@ -291,4 +291,14 @@ ion-popover-view.fit ion-content {
 
 .platform-android ion-popover-view.fit {
     margin-top: 10px !important;
+}
+
+.item-bg-cleared {
+    background-color: #a0d3a1 !important;
+    text-decoration: line-through !important;
+}
+
+.item-bg-normal {
+    background-color: #fff !important;
+    text-decoration: line-through !important;
 }

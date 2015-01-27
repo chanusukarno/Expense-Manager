@@ -30,7 +30,7 @@
 
     </ion-header-bar>
 
-    <ion-content ng-class="showCal ? 'has-cal' : 'has - subheader'">
+    <ion-content ng-class="showCal ? 'has-cal' : 'has-subheader'">
         <!-- <ion-refresher on-refresh="refresh()"></ion-refresher> -->
         <ion-item class="em-results em-small text-center" ng-if="query.length > 0">{{filtered.length}} Results found</ion-item>
 
@@ -42,7 +42,7 @@
                 <span class="amount">{{expense.amount| numShort}}</span>
                 <h2 class="title">{{expense.title}}</h2>
                 <p class="subtitle">
-                    <span>{{expense.category}} &nbsp;|&nbsp;</span>
+                    <span ng-show="expense.category">{{expense.category}} &nbsp;|&nbsp;</span>
                     <span data-am-time-ago="expense.date + ' UTC'"></span>
                     <!-- <span ng-bind="expense.date | date: ''"></span> -->
                 </p>

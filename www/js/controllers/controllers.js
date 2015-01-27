@@ -198,7 +198,7 @@ emApp.controller('dashboardCtrl', function ($scope, $http, $state, $cookieStore,
         });
     }
 
-    $state.go('dashboard.expensesMonthly');
+    // $state.go('dashboard.expensesMonthly');
 });
 
 // Profile Controller
@@ -244,7 +244,7 @@ emApp.controller('profileCtrl', function ($scope, $state, $cookieStore, Toast, e
 });
 
 // Monthly Expenses Controller
-emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $filter, $ionicPopover, $ionicListDelegate, Toast) {
+emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, emConstants, $ionicModal, $filter, $ionicPopover, $ionicListDelegate, Toast) {
 
     try {
         $('#picker_date').pickadate({
@@ -283,6 +283,7 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $f
 
     // Expense Actions
     $scope.expenseAction = function (expense) {
+        expense.type = emConstants.EXPENSE_GENERAL;
         if ($scope.isAdd) {
             // Add expense
             emAPI.addExpense(expense).then(function (res) {
@@ -332,7 +333,8 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $f
         $scope.isEdit = false;
 
         var expense = angular.copy(exp);
-        expense.date = new Date(expense.date);
+        // expense.date = new Date(expense.date);
+        expense.date = moment.utc(expense.date).toDate();
         expense.date.setMilliseconds(0);
 
         expense.category = $scope.categories[indexById($scope.categories, expense.category_id)];
@@ -385,7 +387,7 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, $ionicModal, $f
 });
 
 // All Expenses Controller
-emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filter, $ionicListDelegate, Toast) {
+emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, emConstants, $ionicModal, $filter, $ionicListDelegate, Toast) {
 
     // Add expense Modal
     $ionicModal.fromTemplateUrl('partials/modal/addExpense.html', {
@@ -402,6 +404,7 @@ emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filte
 
     // Expense Actions
     $scope.expenseAction = function (expense) {
+        expense.type = emConstants.EXPENSE_GENERAL;
         if ($scope.isAdd) {
             // Add expense
             console.log(angular.toJson("ADD Expense REQUEST: " + expense));
@@ -452,7 +455,8 @@ emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filte
         $scope.isEdit = false;
 
         var expense = angular.copy(exp);
-        expense.date = new Date(expense.date);
+        // expense.date = new Date(expense.date);
+        expense.date = moment.utc(expense.date).toDate();
         expense.date.setMilliseconds(0);
 
         expense.category = $scope.categories[indexById($scope.categories, expense.category_id)];
@@ -504,7 +508,127 @@ emApp.controller('ExpensesAllCtrl', function ($scope, emAPI, $ionicModal, $filte
 });
 
 // Borrows/Lends
-emApp.controller('borrowsLendsCtrl', function ($scope, emAPI, $ionicModal, $filter) {
+emApp.controller('borrowsLendsCtrl', function ($scope, emAPI, emConstants, $ionicModal, $filter, $ionicListDelegate, Toast) {
+
+    // Add expense Modal
+    $ionicModal.fromTemplateUrl('partials/modal/addBorrowLend.html', {
+        scope: $scope,
+        focusFirstInput: true
+    }).then(function (modal) {
+        $scope.addBorrowLendModal = modal;
+    });
+
+    //// Init categories
+    //emAPI.getUserCategories().then(function (cats) {
+    //    $scope.categories = cats;
+    //});
+
+    // Expense Actions
+    $scope.expenseAction = function (expense, toggleAdd) {
+        toggleAdd ? expense.type = emConstants.EXPENSE_BORROW : expense.type = emConstants.EXPENSE_LENT;
+        if ($scope.isAdd) {
+            // Add expense
+            console.log("ADD Expense REQUEST: " + angular.toJson(expense));
+            emAPI.addExpense(expense).then(function (res) {
+                if (!res.error) {
+                    $scope.addBorrowLendModal.hide();
+                    loadExpenses(); // Reload expenses
+                    Toast.showToast('Expense Added!');
+                } else {
+                    Toast.showToast('Error adding expense: ' + res);
+                }
+            }, function (e) {
+                Toast.showToast('Error adding expense: ' + e);
+            });
+        } else if ($scope.isEdit) {
+            // Update expense
+            emAPI.updateExpense(expense).then(function (res) {
+                if (!res.error) {
+                    $scope.addBorrowLendModal.hide();
+                    loadExpenses(); // Reload expenses
+                    Toast.showToast('Expense Updated!');
+                } else {
+                    Toast.showToast('Error updating expense: ' + res);
+                }
+            }, function (e) {
+                Toast.showToast('Error updating expense: ' + e);
+            });
+            $scope.addBorrowLendModal.hide();
+        } else {
+            // Enable Update
+            $scope.isReadOnly = false;
+            $scope.isEdit = true;
+        }
+    };
+    // init new expense with current date
+    $scope.initNewExpense = function () {
+        $scope.isAdd = true;
+        $scope.isEdit = false;
+        $scope.isReadOnly = false;
+        $scope.expense = {};
+        $scope.expense.date = new Date();
+        $scope.expense.date.setMilliseconds(0);
+    };
+    // init edit expense
+    $scope.initEditExp = function (exp) {
+        $scope.isAdd = false;
+        $scope.isReadOnly = true;
+        $scope.isEdit = false;
+
+        var expense = angular.copy(exp);
+        // expense.date = new Date(expense.date);
+        expense.date = moment.utc(expense.date).toDate();
+        expense.date.setMilliseconds(0);
+
+        (expense.type === emConstants.EXPENSE_BORROW) ? $scope.toggleAdd = true : $scope.toggleAdd = false;
+        (expense.status == 0) ? expense.status = false : expense.status = true;
+
+        // expense.category = $scope.categories[indexById($scope.categories, expense.category_id)];
+        // TODO issue with indexOf always returns -1
+        // expense.category = {"id": expense.category_id, "name": expense.category};
+        // expense.category = $scope.categories[$scope.categories.indexOf(expense.category)];
+        $scope.expense = expense;
+
+        $scope.isExpenseModified = false;
+
+        var unbindWatch = $scope.$watch("expense", function (newData, oldData) {
+            if (newData != oldData) {
+                console.log("Expense updated!");
+                $scope.isExpenseModified = true;
+            } else {
+                $scope.isExpenseModified = false;
+            }
+        }, true);
+    };
+    // Delete expense
+    $scope.deleteExpense = function (expId) {
+        $ionicListDelegate.closeOptionButtons();
+        console.log(angular.toJson("DELETE Expense ID" + expId));
+        emAPI.deleteExpense(expId).then(function (res) {
+            if (!res.error) {
+                Toast.showToast('Expense Deleted!');
+                loadExpenses(); // Reload expenses
+            } else {
+                Toast.showToast('Error deleting expense: ' + res);
+            }
+        }, function (e) {
+            Toast.showToast('Error deleting expense: ' + e);
+        });
+    };
+    // Load expenses:
+    function loadExpenses() {
+        emAPI.getAllBorrowsAndLends().then(function (response) {
+            console.log("emAPI expenses SUCCESS: " + angular.toJson(response));
+            $scope.expenses = $filter('orderBy')(response, function (value) {
+                return new Date(value.date);
+            }, true);
+        }, function (error) {
+            console.log("emAPI expenses ERROR: " + error);
+            $scope.error = true;
+        });
+    }
+
+    loadExpenses();
 
     $scope.showLends = true;
     $scope.showBorrows = true;
@@ -521,23 +645,127 @@ emApp.controller('borrowsLendsCtrl', function ($scope, emAPI, $ionicModal, $filt
         }
     };
 
-    // Add borrow/lend Modal
-    $ionicModal.fromTemplateUrl('partials/modal/addBorrowLend.html', {
-        scope: $scope,
-        focusFirstInput: true
-    }).then(function (modal) {
-        $scope.addBorrowLendModal = modal;
-    });
-
-    $scope.initNewBorrowLend = function () {
-
-    };
-
 });
 
 // Recurring Expenses
-emApp.controller('expensesRecurringCtrl', function ($scope, emAPI, $ionicModal, $filter) {
+emApp.controller('expensesRecurringCtrl', function ($scope, emAPI, emConstants, $ionicModal, $filter, $ionicPopover, $ionicListDelegate, Toast) {
 
+    // Add expense Modal
+    $ionicModal.fromTemplateUrl('partials/modal/addExpense.html', {
+        scope: $scope,
+        focusFirstInput: true
+    }).then(function (modal) {
+        $scope.addExpenseModal = modal;
+    });
+
+    // Init categories
+    emAPI.getUserCategories().then(function (cats) {
+        $scope.categories = cats;
+    });
+
+    // Expense Actions
+    $scope.expenseAction = function (expense) {
+        expense.type = emConstants.EXPENSE_RECUR;
+        if ($scope.isAdd) {
+            // Add expense
+            console.log(angular.toJson("ADD Expense REQUEST: " + expense));
+            emAPI.addExpense(expense).then(function (res) {
+                if (!res.error) {
+                    $scope.addExpenseModal.hide();
+                    loadExpenses(); // Reload expenses
+                    Toast.showToast('Expense Added!');
+                } else {
+                    Toast.showToast('Error adding expense: ' + res);
+                }
+            }, function (e) {
+                Toast.showToast('Error adding expense: ' + e);
+            });
+        } else if ($scope.isEdit) {
+            // Update expense
+            emAPI.updateExpense(expense).then(function (res) {
+                if (!res.error) {
+                    $scope.addExpenseModal.hide();
+                    loadExpenses(); // Reload expenses
+                    Toast.showToast('Expense Updated!');
+                } else {
+                    Toast.showToast('Error updating expense: ' + res);
+                }
+            }, function (e) {
+                Toast.showToast('Error updating expense: ' + e);
+            });
+            $scope.addExpenseModal.hide();
+        } else {
+            // Enable Update
+            $scope.isReadOnly = false;
+            $scope.isEdit = true;
+        }
+    };
+    // init new expense with current date
+    $scope.initNewExpense = function () {
+        $scope.isAdd = true;
+        $scope.isEdit = false;
+        $scope.isReadOnly = false;
+        $scope.expense = {};
+        $scope.expense.date = new Date();
+        $scope.expense.date.setMilliseconds(0);
+    };
+    // init edit expense
+    $scope.initEditExp = function (exp) {
+        $scope.isAdd = false;
+        $scope.isReadOnly = true;
+        $scope.isEdit = false;
+
+        var expense = angular.copy(exp);
+        // expense.date = new Date(expense.date);
+        expense.date = moment.utc(expense.date).toDate();
+        expense.date.setMilliseconds(0);
+
+        expense.category = $scope.categories[indexById($scope.categories, expense.category_id)];
+        // TODO issue with indexOf always returns -1
+        // expense.category = {"id": expense.category_id, "name": expense.category};
+        // expense.category = $scope.categories[$scope.categories.indexOf(expense.category)];
+        $scope.expense = expense;
+
+        $scope.isExpenseModified = false;
+
+        var unbindWatch = $scope.$watch("expense", function (newData, oldData) {
+            if (newData != oldData) {
+                console.log("Expense updated!");
+                $scope.isExpenseModified = true;
+            } else {
+                $scope.isExpenseModified = false;
+            }
+        }, true);
+    };
+    // Delete expense
+    $scope.deleteExpense = function (expId) {
+        $ionicListDelegate.closeOptionButtons();
+        console.log(angular.toJson("DELETE Expense ID" + expId));
+        emAPI.deleteExpense(expId).then(function (res) {
+            if (!res.error) {
+                Toast.showToast('Expense Deleted!');
+                loadExpenses(); // Reload expenses
+            } else {
+                Toast.showToast('Error deleting expense: ' + res);
+            }
+        }, function (e) {
+            Toast.showToast('Error deleting expense: ' + e);
+        });
+    };
+    // Load expenses:
+    function loadExpenses() {
+        emAPI.getAllRecurExpenses().then(function (response) {
+            console.log("emAPI expenses SUCCESS: " + angular.toJson(response));
+            $scope.expenses = $filter('orderBy')(response, function (value) {
+                return new Date(value.date);
+            }, true);
+        }, function (error) {
+            console.log("emAPI expenses ERROR: " + error);
+            $scope.error = true;
+        });
+    }
+
+    loadExpenses();
 
 });
 

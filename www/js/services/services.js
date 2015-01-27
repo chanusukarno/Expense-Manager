@@ -4,7 +4,7 @@ var emApp = angular.module('emApp.services', []);
 var apiURL = '';
 // var config = {timeout: 10000};
 var config = {};
-var ALL_EXPENSES, CURRENCIES, CATEGORIES, expensesMonthly;
+var ALL_EXPENSES, CURRENCIES, CATEGORIES, expensesMonthly, BORROWS_LENDS, EXPENSES_RECUR;
 
 emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
 
@@ -98,7 +98,7 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
         getAllExpenses: function () {
             var q = $q.defer();
             if (!ALL_EXPENSES) {
-                $http.get(emConstants.BASE_URL + emConstants.EXPENSES, config)
+                $http.get(emConstants.BASE_URL + emConstants.API_EXPENSES, config)
                     .then(function (result) {
                         console.log("SERVICES getAllExpenses RESULT: " + angular.toJson(result));
                         if (!validateResponse(result) && result.data.error) {
@@ -117,6 +117,52 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
             return q.promise;
         },
 
+        // Get all borrows and lends
+        getAllBorrowsAndLends: function () {
+            var q = $q.defer();
+            if (!BORROWS_LENDS) {
+                $http.get(emConstants.BASE_URL + emConstants.API_EXPENSES_BORROWS_LENDS, config)
+                    .then(function (result) {
+                        console.log("SERVICES getAllBorrowsAndLends RESULT: " + angular.toJson(result));
+                        if (!validateResponse(result) && result.data.error) {
+                            q.reject(new Error('Invalid Response'));
+                        } else {
+                            BORROWS_LENDS = result.data.expenses;
+                            q.resolve(result.data.expenses);
+                        }
+                    }, function (e) {
+                        console.log('getAllBorrowsAndLends/ Failed: ' + e);
+                        q.reject(e);
+                    });
+            } else {
+                q.resolve(BORROWS_LENDS);
+            }
+            return q.promise;
+        },
+
+        // Get all borrows and lends
+        getAllRecurExpenses: function () {
+            var q = $q.defer();
+            if (!EXPENSES_RECUR) {
+                $http.get(emConstants.BASE_URL + emConstants.API_EXPENSES_RECUR, config)
+                    .then(function (result) {
+                        console.log("SERVICES getAllBorrowsAndLends RESULT: " + angular.toJson(result));
+                        if (!validateResponse(result) && result.data.error) {
+                            q.reject(new Error('Invalid Response'));
+                        } else {
+                            EXPENSES_RECUR = result.data.expenses;
+                            q.resolve(result.data.expenses);
+                        }
+                    }, function (e) {
+                        console.log('getAllBorrowsAndLends/ Failed: ' + e);
+                        q.reject(e);
+                    });
+            } else {
+                q.resolve(EXPENSES_RECUR);
+            }
+            return q.promise;
+        },
+
         // Add new Expense
         addExpense: function (request) {
             var q = $q.defer();
@@ -125,20 +171,36 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
             newExp.currencyName = "Rupee"; // TODO Defaulting to Rupee for now
             newExp.currencyCode = "&#x20B9;"; // TODO Defaulting to Rupee for now
             newExp.currency_id = 2; // TODO Defaulting to Rupee for now
-            newExp.category_id = newExp.category.id;
+
+            if(newExp.category) {
+                newExp.category_id = newExp.category.id;
+                newExp.category = newExp.category.name;
+            }
+
             newExp.date = new Date(newExp.date).toMysqlFormat();
-            newExp.category = newExp.category.name;
 
             console.log("addExpense REQUEST: " + angular.toJson(newExp));
-            $http.post(emConstants.BASE_URL + emConstants.EXPENSES, newExp, config)
+            $http.post(emConstants.BASE_URL + emConstants.API_EXPENSES, newExp, config)
                 .then(function(result) {
                     if (!validateResponse(result) && result.data.error) {
                         q.reject(new Error('Invalid Response'));
                     } else {
                         // update expense id
                         newExp.id = result.data.expenseId;
-                        // Also push to ALL_EXPENSES for local use
-                        ALL_EXPENSES.push(newExp);
+                        newExp.status = 0;
+                        // Also update in local
+                        var localExp = [];
+                        if(!newExp.category) {
+                            // Borrows/lends
+                            localExp = BORROWS_LENDS;
+                        } else if(newExp.type === emConstants.EXPENSE_RECUR) {
+                            // Recur
+                            localExp = EXPENSES_RECUR;
+                        } else {
+                            localExp = ALL_EXPENSES;
+                        }
+
+                        localExp.push(newExp);
                         q.resolve(result.data);
                     }
                 }, function(err) {
@@ -157,18 +219,35 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
             upExp.currencyName = "Rupee"; // TODO Defaulting to Rupee for now
             upExp.currencyCode = "&#x20B9;"; // TODO Defaulting to Rupee for now
             upExp.currency_id = 2; // TODO Defaulting to Rupee for now
-            upExp.category_id = upExp.category.id;
+
             upExp.date = new Date(upExp.date).toMysqlFormat();
-            upExp.category = upExp.category.name;
+
+            if(upExp.category) {
+                upExp.category_id = upExp.category.id;
+                upExp.category = upExp.category.name;
+            }
+
+            upExp.status ? upExp.status = 1 : upExp.status = 0;
 
             console.log("updateExpense REQUEST: " + angular.toJson(upExp));
-            $http.put(emConstants.BASE_URL + emConstants.EXPENSES + "/" + upExp.id, upExp, config)
+            $http.put(emConstants.BASE_URL + emConstants.API_EXPENSES + "/" + upExp.id, upExp, config)
                 .then(function(result) {
                     if (!validateResponse(result) && result.data.error) {
                         q.reject(new Error('Invalid Response'));
                     } else {
-                        // Also update in ALL_EXPENSES for local use
-                        ALL_EXPENSES.splice(indexById(ALL_EXPENSES, upExp.id), 1, upExp);
+                        // Also update in local
+                        var localExp = [];
+                        if(!upExp.category) {
+                            // Borrows/lends
+                            localExp = BORROWS_LENDS;
+                        } else if(upExp.type === emConstants.EXPENSE_RECUR) {
+                            // Recur
+                            localExp = EXPENSES_RECUR;
+                        } else {
+                            localExp = ALL_EXPENSES;
+                        }
+
+                        localExp.splice(indexById(localExp, upExp.id), 1, upExp);
                         q.resolve(result.data);
                     }
                 }, function(err) {
@@ -183,14 +262,22 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
         deleteExpense: function (expId) {
             var q = $q.defer();
             console.log("deleteExpense REQUEST: " + angular.toJson(expId));
-            $http.delete(emConstants.BASE_URL + emConstants.EXPENSES + "/" + expId, config)
+            $http.delete(emConstants.BASE_URL + emConstants.API_EXPENSES + "/" + expId, config)
                 .then(function(result) {
                     if (!validateResponse(result) && result.data.error) {
                         q.reject(new Error('Invalid Response'));
                     } else {
                         console.log("Expense DELETED successfully!");
                         // Delete expense from the local Data
-                        ALL_EXPENSES.splice(indexById(ALL_EXPENSES, expId), 1);
+                        if(ALL_EXPENSES && ALL_EXPENSES.length > 0) {
+                            ALL_EXPENSES.splice(indexById(ALL_EXPENSES, expId), 1);
+                        }
+                        if(BORROWS_LENDS && BORROWS_LENDS.length > 0) {
+                            BORROWS_LENDS.splice(indexById(BORROWS_LENDS, expId), 1);
+                        }
+                        if(EXPENSES_RECUR && EXPENSES_RECUR.length > 0) {
+                            EXPENSES_RECUR.splice(indexById(EXPENSES_RECUR, expId), 1);
+                        }
                         q.resolve(result.data);
                     }
                 }, function(err) {
