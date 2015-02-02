@@ -151,10 +151,6 @@ hr {
     padding-top: 5px;
 }
 
-.em-item {
-    padding: 0px 0px 0px 8px;
-}
-
 .item .notes {
     font-size: 12px;
 }
@@ -299,6 +295,21 @@ ion-popover-view.fit ion-content {
 }
 
 .item-bg-normal {
-    background-color: #fff !important;
-    text-decoration: line-through !important;
+    background-color: #E8E8E8 !important;
+}
+
+.em-cat-item .item-content {
+    padding: 14px 0px 14px 15px !important;
+}
+
+.em-bl-item .item-content {
+    margin-left: 8px !important;
+}
+
+.label-savings {
+    background-color: #a0d3a1 !important;
+    margin: 15px 35px 20px 35px;
+    padding: 10px;
+    text-align: center;
+    border-radius: 25px;
 }

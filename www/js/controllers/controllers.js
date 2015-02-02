@@ -34,7 +34,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
             console.log("LOGIN SUCCESS: " + angular.toJson(response));
             if (!response.error) {
                 $cookieStore.put('userInfo', response);
-                $state.go('dashboard');
+                $state.go('dashboard.expensesMonthly');
                 $scope.loginModal.hide();
             } else {
 
@@ -51,7 +51,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
             console.log("REGISTER SUCCESS: " + angular.toJson(response));
             if (!response.error) {
                 $cookieStore.put('userInfo', response);
-                $state.go('dashboard');
+                $state.go('dashboard.expensesMonthly');
                 $scope.regModal.hide();
             } else {
 
@@ -99,7 +99,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                         if (!response.error) {
                             console.log("OAUTH SUCCESS: " + angular.toJson(response));
                             $cookieStore.put('userInfo', response);
-                            $state.go('dashboard');
+                            $state.go('dashboard.expensesMonthly');
                         } else {
                             console.log("OAUTH ERROR: " + angular.toJson(response));
                         }
@@ -154,7 +154,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                         if (!response.error) {
                             console.log("OAUTH SUCCESS: " + angular.toJson(response));
                             $cookieStore.put('userInfo', response);
-                            $state.go('dashboard');
+                            $state.go('dashboard.expensesMonthly');
                         } else {
                             console.log("OAUTH ERROR: " + angular.toJson(response));
                         }
@@ -240,6 +240,265 @@ emApp.controller('profileCtrl', function ($scope, $state, $cookieStore, Toast, e
             console.log("UPDATE PROFILE ERROR: " + e);
         });
     }
+
+});
+
+// Finance
+emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPopup, $ionicModal, $ionicListDelegate, $state, $window) {
+
+    // Set data
+    var finance = {
+        income: 82000,
+        expenses: 0,
+        budget: 42000,
+        savings: 14000
+    };
+
+    // set savings
+    $scope.range = Math.floor(100 - [(finance.savings / finance.income) * 100]);
+
+    $scope.rangeChanged = function(range) {
+        // console.log("Range: " + range);
+        // console.log("Income: " + $scope.finance.income);
+        // console.log("Savings: " + $scope.finance.savings);
+        $scope.finance.budget = ($scope.finance.income / 100) * range;
+        $scope.finance.savings = ($scope.finance.income / 100) * (100 - range);
+    }
+
+    $scope.$watch('finance.income', function(newF, oldF) {
+        if(newF !== oldF) {
+            $scope.rangeChanged($scope.range);
+        }
+    }, true);
+
+    $scope.$watch('finance.budget', function(newF, oldF) {
+        newF = +newF;
+        oldF = +oldF;
+        if(newF !== oldF) {
+            //$scope.rangeChanged($scope.range);
+            $scope.finance.savings = $scope.finance.income - newF;
+            $scope.range = Math.floor(100 - [($scope.finance.savings / $scope.finance.income) * 100]);
+        }
+    }, true);
+
+    $scope.$watch('finance.savings', function(newF, oldF) {
+        newF = +newF;
+        oldF = +oldF;
+        if(+newF !== +oldF) {
+            $scope.finance.budget = $scope.finance.income - newF;
+            $scope.range = Math.floor(100 - [(newF / $scope.finance.income) * 100]);
+        }
+    }, true);
+
+    $scope.finance = finance;
+
+    // category edit or add
+    $scope.showEditPopup = function (type, item) {
+
+        var title, btnText;
+
+        if (type === 'income') {
+            title = "Set Income";
+            btnText = "Set";
+            $scope.data.title = $scope.finance.income;
+        } else if(type === 'budget') {
+            title = "Set Budget";
+            btnText = "Set";
+            $scope.data.title = $scope.finance.budget;
+        } else if(type === 'savings') {
+            title = "Set Savings";
+            btnText = "Set";
+            $scope.data.title = $scope.finance.savings;
+        }
+
+        // An elaborate, custom popup
+        var myPopup = $ionicPopup.show({
+            template: '<input type="text" ng-model="data.title">',
+            title: title,
+            //subTitle: 'Please use normal things',
+            scope: $scope,
+            buttons: [
+                {text: 'Cancel'},
+                {
+                    text: '<b>' + btnText + '</b>',
+                    type: 'button-positive',
+                    onTap: function (e) {
+                        if (!$scope.data.title) {
+                            e.preventDefault();
+                        } else {
+                            if (type === 'income') {
+                                $scope.finance.income = $scope.data.title;
+                            } else if(type === 'budget') {
+                                $scope.finance.budget = $scope.data.title;
+                            } else if(type === 'savings') {
+                                $scope.finance.savings = $scope.data.title;
+                            }
+                            return;
+                        }
+                    }
+                }
+            ]
+        });
+        myPopup.then(function (res) {
+            console.log('Tapped!', res);
+            $ionicListDelegate.closeOptionButtons();
+        });
+    };
+
+
+// Logout confirmation dialog
+    $scope.showConfirm = function () {
+        var confirmLogout = $ionicPopup.confirm({
+            title: 'Log Out of ExpenseManager?',
+            template: 'You can always access your content by signing back in.'
+        });
+        confirmLogout.then(function (res) {
+            if (res) {
+                console.log('You are sure');
+                $state.go('welcome');
+            } else {
+                console.log('You are not sure');
+            }
+        });
+    };
+
+    $scope.showLogoutPopup = function () {
+        $scope.data = {};
+        var myPopup = $ionicPopup.show({
+            template: 'You can always access your content by signing back in.',
+            title: 'Log Out of ExpenseManager?',
+            scope: $scope,
+            buttons: [
+                {text: 'Cancel'},
+                {
+                    text: '<b>Log Out</b>',
+                    type: 'button-positive',
+                    onTap: function (e) {
+                        // Logout user
+                        $cookieStore.remove("userInfo");
+                        $cookieStore.remove("userProfile");
+                        $state.go('welcome');
+                        $window.location.reload();
+                        return;
+                    }
+                }
+            ]
+        });
+
+//        myPopup.then(function (res) {
+//            console.log('Tapped!', res);
+//        });
+//        $timeout(function () {
+//            myPopup.close(); //close the popup after 3 seconds for some reason
+//        }, 3000);
+    };
+
+
+    // Manage Categories Modal
+    $ionicModal.fromTemplateUrl('partials/modal/categories.html', {
+        scope: $scope,
+        focusFirstInput: true
+    }).then(function (modal) {
+        $scope.categoriesModal = modal;
+    });
+
+    // categories controller
+    $scope.data = {
+        showDelete: false
+    };
+
+    $scope.moveItem = function (item, fromIndex, toIndex) {
+        $scope.items.splice(fromIndex, 1);
+        $scope.items.splice(toIndex, 0, item);
+    };
+
+    $scope.items = [
+        {id: 0, title: "Food"},
+        {id: 1, title: "Snacks"},
+        {id: 2, title: "Grocery"},
+        {id: 3, title: "Entertainment"},
+        {id: 4, title: "Shopping"},
+        {id: 5, title: "Vehicle"},
+        {id: 6, title: "Cigarettes"},
+        {id: 7, title: "Alchohol"},
+        {id: 8, title: "Donation"},
+        {id: 9, title: "Shopping"},
+        {id: 10, title: "Cosmetics"},
+        {id: 11, title: "Parties"},
+        {id: 12, title: "Rental"}
+    ];
+
+    // category edit or add
+    $scope.showCategoryEditPopup = function (type, item) {
+
+        var title, btnText;
+
+        if (type === 'add') {
+            title = "Add Category";
+            btnText = "Add";
+            $scope.data = {};
+        } else {
+            title = "Edit Category";
+            btnText = "Save";
+            $scope.data = angular.copy(item);
+        }
+
+        // An elaborate, custom popup
+        var myPopup = $ionicPopup.show({
+            template: '<input type="text" ng-model="data.title">',
+            title: title,
+            //subTitle: 'Please use normal things',
+            scope: $scope,
+            buttons: [
+                {text: 'Cancel'},
+                {
+                    text: '<b>' + btnText + '</b>',
+                    type: 'button-positive',
+                    onTap: function (e) {
+                        if (!$scope.data.title) {
+                            e.preventDefault();
+                        } else {
+                            if (type === 'add') {
+                                $scope.items.push({id: 0, title: $scope.data.title});
+                            } else {
+                                $scope.items[$scope.items.indexOf(item)].title = $scope.data.title;
+                            }
+                            return;
+                        }
+                    }
+                }
+            ]
+        });
+        myPopup.then(function (res) {
+            console.log('Tapped!', res);
+            $ionicListDelegate.closeOptionButtons();
+        });
+    };
+
+    // Delete Category
+    $scope.showCategoryDeletePopup = function (item) {
+
+        // An elaborate, custom popup
+        var myPopup = $ionicPopup.show({
+            template: item.title,
+            title: 'Delete Category?',
+            //subTitle: 'Please use normal things',
+            buttons: [
+                {text: 'Cancel'},
+                {
+                    text: '<b>Delete</b>',
+                    type: 'button-assertive',
+                    onTap: function () {
+                        return $scope.items.splice($scope.items.indexOf(item), 1);
+                    }
+                }
+            ]
+        });
+        myPopup.then(function (res) {
+            console.log('Tapped!', res);
+            $ionicListDelegate.closeOptionButtons();
+        });
+    };
 
 });
 

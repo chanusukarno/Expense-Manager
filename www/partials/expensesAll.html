@@ -22,7 +22,7 @@
         <ion-item class="em-results em-small text-center" ng-if="query.length > 0">{{filtered.length}} Results found</ion-item>
 
         <ion-list>
-            <ion-item class="em-item item-remove-animate"
+            <ion-item class="item-remove-animate"
                       ng-repeat="expense in filtered = (expenses| filter:query) track by $index"
                       ng-click="addExpenseModal.show(); initEditExp(expense)" >
                 <span class="currency" ng-bind-html="expense.currencyCode | html"></span>

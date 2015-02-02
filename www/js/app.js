@@ -116,6 +116,15 @@ emApp.config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
                 }
             }
         })
+        .state('dashboard.finance', {
+            url: "/finance",
+            views: {
+                'menuContent': {
+                    templateUrl: "partials/finance.html",
+                    controller: "financeCtrl"
+                }
+            }
+        })
         .state('dashboard.profile', {
             url: "/profile",
             views: {

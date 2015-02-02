@@ -4441,7 +4441,7 @@ a.item {
 .item-complex .item-content, .item-radio .item-content {
   position: relative;
   z-index: 2;
-  padding: 8px 15px 8px 12px;
+  padding: 8px 15px 8px 15px;
   border: none;
   background-color: white; }
 
@@ -4736,8 +4736,8 @@ a.item-content {
   padding-top: 8px;
   padding-bottom: 8px;
   min-height: 30px;
-  background-color: #f5f5f5;
-  color: #222;
+  background-color: rgba(89, 189, 187, 0.23);
+  color: #6F6F6F;
   font-weight: 500; }
 
 .platform-ios .item-divider-platform, .item-divider-ios {
@@ -5717,8 +5717,8 @@ input[type="range"] {
   width: auto;
   height: 43px;
   outline: none;
-  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #ccc), color-stop(100%, #ccc));
-  background: linear-gradient(to right, #ccc 0%, #ccc 100%);
+  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #a0d3a1), color-stop(100%, #a0d3a1));
+  background: linear-gradient(to right, #a0d3a1 0%, #a0d3a1 100%);
   background-position: center;
   background-size: 99% 2px;
   background-repeat: no-repeat;

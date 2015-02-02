@@ -9,7 +9,9 @@ emApp.filter('html', function($sce) {
 // number
 emApp.filter('numShort', function() {
     return function(number) {
-        if (number) {
+        if(!number || number === 0) {
+            return 0.0;
+        } else {
             var abs = Math.abs(number);
             if (abs >= Math.pow(10, 12))
                 //trillion

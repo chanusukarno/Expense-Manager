@@ -1,0 +1,18 @@
+<ion-view view-title="Finance">
+    <ion-content>
+        <div class="list">
+            <div class="item item-divider">Finance for Month <span class="item-note"><i class="icon" style="font-size: 16px !important; margin-right: 5px;"> February</i></span></a></div>
+            <div class="item" ng-click="showEditPopup('income', item)">Net Income<span class="badge badge-calm">{{finance.income| numShort}}</span></div>
+            <div class="item item-bg-normal">Total Expenses<span class="badge badge-assertive">{{finance.expenses| numShort}}</span></div>
+            <div class="item" ng-click="showEditPopup('budget', item)">Budget Remaining<span class="badge badge-energized">{{finance.budget| numShort}}</span></div>
+            <div class="item" ng-click="showEditPopup('savings', item)">Savings Target<span class="badge badge-balanced">{{finance.savings| numShort}}</span></div>
+            <!--<div class="item">Budget Benchmark<span class="badge badge-assertive">2K</span></div>-->
+            <div class="range range-calm">
+                <input type="range" name="volume" min="0" max="100" ng-model="range" ng-change="rangeChanged(range)">
+            </div>
+            <div class="label-savings">
+                <span>You save {{100 - range}}% of your Income!</span>
+            </div>
+        </div>
+    </ion-content>
+</ion-view>
