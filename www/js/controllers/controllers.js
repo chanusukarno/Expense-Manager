@@ -248,49 +248,64 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
 
     // Set data
     var finance = {
-        income: 82000,
+        income: 0,
         expenses: 0,
-        budget: 42000,
-        savings: 14000
+        budget: 0,
+        savings: 0
     };
 
-    // set savings
-    $scope.range = Math.floor(100 - [(finance.savings / finance.income) * 100]);
+    $scope.isRangeDisabled = finance.income === 0 ? true : false;
 
-    $scope.rangeChanged = function(range) {
-        // console.log("Range: " + range);
-        // console.log("Income: " + $scope.finance.income);
-        // console.log("Savings: " + $scope.finance.savings);
-        $scope.finance.budget = ($scope.finance.income / 100) * range;
-        $scope.finance.savings = ($scope.finance.income / 100) * (100 - range);
+    function Finance(totalIncome) {
+        var income = totalIncome;
+        var budget = totalIncome;
+        var savings = income - budget;
+        var range = 100;
+
+        this.__defineGetter__("income", function () {
+            return income;
+        });
+
+        this.__defineGetter__("budget", function () {
+            return budget;
+        });
+
+        this.__defineGetter__("savings", function () {
+            return savings;
+        });
+
+        this.__defineGetter__("range", function () {
+            return range;
+        });
+
+        this.__defineSetter__("range", function (val) {
+            val = parseInt(val);
+            range = val;
+            budget = (income / 100) * range;
+            savings = (income / 100) * (100 - range);
+        });
+
+        this.__defineSetter__("income", function (val) {
+            income = val;
+            budget = (income / 100) * range;
+            savings = (income / 100) * (100 - range);
+            $scope.isRangeDisabled = income === 0 ? true : false;
+        });
+
+        this.__defineSetter__("budget", function (val) {
+            budget = val;
+            savings = $scope.finance.income - val;
+            range = Math.floor((val / income) * 100);
+        });
+
+        this.__defineSetter__("savings", function (val) {
+            savings = val;
+            budget = $scope.finance.income - val;
+            range = Math.floor(100 - [(val / income) * 100]);
+        });
     }
 
-    $scope.$watch('finance.income', function(newF, oldF) {
-        if(newF !== oldF) {
-            $scope.rangeChanged($scope.range);
-        }
-    }, true);
-
-    $scope.$watch('finance.budget', function(newF, oldF) {
-        newF = +newF;
-        oldF = +oldF;
-        if(newF !== oldF) {
-            //$scope.rangeChanged($scope.range);
-            $scope.finance.savings = $scope.finance.income - newF;
-            $scope.range = Math.floor(100 - [($scope.finance.savings / $scope.finance.income) * 100]);
-        }
-    }, true);
-
-    $scope.$watch('finance.savings', function(newF, oldF) {
-        newF = +newF;
-        oldF = +oldF;
-        if(+newF !== +oldF) {
-            $scope.finance.budget = $scope.finance.income - newF;
-            $scope.range = Math.floor(100 - [(newF / $scope.finance.income) * 100]);
-        }
-    }, true);
-
-    $scope.finance = finance;
+    $scope.finance = new Finance(finance.income);
 
     // category edit or add
     $scope.showEditPopup = function (type, item) {
@@ -313,7 +328,7 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
 
         // An elaborate, custom popup
         var myPopup = $ionicPopup.show({
-            template: '<input type="text" ng-model="data.title">',
+            template: '<input type="number" ng-model="data.title">',
             title: title,
             //subTitle: 'Please use normal things',
             scope: $scope,

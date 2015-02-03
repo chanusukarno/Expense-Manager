@@ -17,7 +17,7 @@
 
         <div ng-init="showCal = false" ng-hide="showCal">
             <input class="filter" type="search"
-                   placeholder="Filter contacts..."
+                   placeholder="Search expenses..."
                    ng-model="query"
                    ng-focus="searchFocused = true"
                    ng-blur="searchFocused = false"
@@ -31,6 +31,22 @@
     </ion-header-bar>
 
     <ion-content ng-class="showCal ? 'has-cal' : 'has-subheader'">
+        <ion-item class="em-expenses-header">
+            <div style="width: 45%; float: left; text-align: right;">
+                <div style="color: cadetblue;">
+                    <div style="font-size: 14px">Today</div>
+                    <div style="font-size: 12px">Expenses / Budget <span style="font-size: 16px">&#x20B9;</span></div>
+                </div>
+                <div style="font-size: 24px; margin-top: 10px">{{100| numShort}} / {{1200| numShort}}</div>
+            </div>
+            <div style="width: 45%; float: right; text-align: left;">
+                <div style="color: cadetblue;">
+                    <div style="font-size: 14px">February</div>
+                    <div style="font-size: 12px">Expenses / Budget <span style="font-size: 16px">&#x20B9;</span></div>
+                </div>
+                <div style="font-size: 24px; margin-top: 10px">{{1000| numShort}} / {{12000| numShort}}</div>
+            </div>
+        </ion-item>
         <!-- <ion-refresher on-refresh="refresh()"></ion-refresher> -->
         <ion-item class="em-results em-small text-center" ng-if="query.length > 0">{{filtered.length}} Results found</ion-item>
 
