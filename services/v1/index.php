@@ -610,6 +610,60 @@ $app->delete('/expenses/:id', 'authenticate', function ($expense_id) use ($app) 
     echoResponse(200, $response);
 });
 
+/* ----------------------- 'finance' Methods -------------------------------------
+
+/**
+ * Creating new finance for month or update if exists
+ * method POST
+ */
+$app->post('/finance', 'authenticate', function () use ($app) {
+    // check for required params
+    $request_params = $app->request->getBody();
+    //verifyRequiredParams(array('income', 'amount', 'date'), $request_params);
+
+    $response = array();
+
+    global $userId;
+    $db = new DbHandler();
+
+    // creating new task
+    $financeId = $db->updateFinance($userId, $request_params);
+
+    if ($financeId != NULL) {
+        $response["error"] = false;
+        $response["message"] = "Finance updated successfully";
+        // $response["financeId"] = $financeId;
+        echoResponse(200, $response);
+    } else {
+        $response["error"] = true;
+        $response["message"] = "Failed to update Expense. Please try again";
+        echoResponse(200, $response);
+    }
+});
+
+/**
+ * Get user finance
+ * method GET
+ * url /finance
+ */
+$app->get('/finance/:date', 'authenticate', function ($date) {
+    global $userId;
+    $response = array();
+    $db = new DbHandler();
+
+    $result = $db->getFinance($date, $userId);
+
+    if ($result['id'] != NULL) {
+        $response = $result;
+        $response["error"] = false;
+        echoResponse(200, $response);
+    } else {
+        $response["error"] = true;
+        $response["message"] = "The requested resource doesn't exists";
+        echoResponse(200, $response);
+    }
+});
+
 /* ----------------------- 'Currencies' Methods -------------------------------------
 
 /**

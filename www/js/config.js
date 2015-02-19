@@ -4,7 +4,7 @@ emApp.constant('emConstants', {
     "APP_NAME": "EXPENSE MANAGER",
     "APP_VERSION": "0.0.1",
     // "BASE_URL": "http://em.techiedreams.com/services/v1/", // Remote
-    "BASE_URL": "http://localhost:8899/EM-Services/v1/", // Local
+    "BASE_URL": "http://localhost/Expense-Manager/services/v1/", // Local
     "OAUTH": "oauth",
     "LOGIN": "login",
     "PROFILE": "profile",
@@ -12,6 +12,7 @@ emApp.constant('emConstants', {
     "API_EXPENSES": "expenses",
     "API_EXPENSES_RECUR": "expenses/recur",
     "API_EXPENSES_BORROWS_LENDS": "expenses/borrowslends",
+    "API_FINANCE": "finance",
     "CURRENCIES": "currencies",
     "CATEGORIES": "categories",
     "PROVIDER_GOOGLE": "google",

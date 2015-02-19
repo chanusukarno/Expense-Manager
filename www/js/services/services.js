@@ -307,6 +307,31 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
                 q.resolve(expensesMonthly);
             }
             return q.promise;
+        },
+
+        // Add new Expense
+        updateFinance: function (request) {
+            var q = $q.defer();
+
+            console.log("addExpense REQUEST: " + angular.toJson(request));
+            $http.post(emConstants.BASE_URL + emConstants.API_FINANCE, request, config)
+                .then(function(result) {
+                    if (!validateResponse(result) && result.data.error) {
+                        q.reject(new Error('Invalid Response'));
+                    } else {
+                        // update local finance
+                        q.resolve(result.data);
+                    }
+                }, function(err) {
+                    console.log('expenses/ Failed: ' + err);
+                    q.reject(err);
+
+                });
+            return q.promise;
+        },
+
+        getFinance: function (date) {
+            return $http.get(emConstants.BASE_URL + emConstants.API_FINANCE + "/" + date, config);
         }
 
     };

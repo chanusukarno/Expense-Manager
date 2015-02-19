@@ -313,7 +313,7 @@ ion-popover-view.fit ion-content {
 
 .label-savings {
     background-color: #a0d3a1 !important;
-    margin: 15px 35px 20px 35px;
+    margin: 10px 30px 25px 30px;
     padding: 10px;
     text-align: center;
     border-radius: 25px;
@@ -327,4 +327,12 @@ ion-popover-view.fit ion-content {
     -webkit-box-shadow: inset 0px 0.5px 5px 0px rgba(208,208,208,0.75);
     -moz-box-shadow: inset 0px 0.5px 5px 0px rgba(208,208,208,0.75);
     box-shadow: inset 0px 0.5px 5px 0px rgba(208,208,208,208.75);
+}
+
+.label-info {
+    /*background-color: #a0d3a1 !important;*/
+    margin: 35px 30px 20px 30px;
+    padding: 10px;
+    text-align: center;
+    border-radius: 25px;
 }

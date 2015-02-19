@@ -5717,8 +5717,8 @@ input[type="range"] {
   width: auto;
   height: 43px;
   outline: none;
-  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #a0d3a1), color-stop(100%, #a0d3a1));
-  background: linear-gradient(to right, #a0d3a1 0%, #a0d3a1 100%);
+  background: -webkit-gradient(linear, 50% 0%, 50% 100%, color-stop(0%, #11c1f3), color-stop(100%, #11c1f3));
+  background: linear-gradient(to right, #11c1f3 0%, #11c1f3 100%);
   background-position: center;
   background-size: 99% 2px;
   background-repeat: no-repeat;

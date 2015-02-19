@@ -718,6 +718,102 @@ class DbHandler {
         return $result;
     }
 
+    /* --------------------- 'Finance' Methods ----------------------- */
+
+    /**
+     * Creating or update finance
+     * @param String $userId
+     * @param String $requestParams
+     */
+    public function updateFinance($userId, $requestParams) {
+
+        isset($requestParams['month']) ? $month = $requestParams['month'] : $month = '';
+        isset($requestParams['income']) ? $income = $requestParams['income'] : $income = '';
+        isset($requestParams['budget']) ? $budget = $requestParams['budget'] : $budget = '';
+        isset($requestParams['savings']) ? $savings = $requestParams['savings'] : $savings = '';
+        isset($requestParams['borrows']) ? $borrows = $requestParams['borrows'] : $borrows = '';
+        isset($requestParams['lends']) ? $lends = $requestParams['lends'] : $lends = '';
+
+        if($this->getFinance($requestParams['month'], $userId)['id'] == NULL) {
+            $stmt = $this->conn->prepare("INSERT INTO finance(month, income, budget, savings, borrows, lends) VALUES(?, ?, ?, ?, ?, ?)");
+
+            $stmt->bind_param("siiiii", $month, $income, $budget, $savings, $borrows, $lends);
+            $result = $stmt->execute();
+
+            if ($result) {
+                $financeId = $this->conn->insert_id;
+                $res = $this->createUserFinance($userId, $financeId);
+                if ($res) {
+                    // $stmt->close();
+                    // finance created successfully
+                    return $financeId;
+                } else {
+                    // finance failed to create
+                    return NULL;
+                }
+            } else {
+                // finance failed to create
+                return NULL;
+            }
+
+        } else {
+            $stmt = $this->conn->prepare("UPDATE finance f, user_finance uf set f.income = ?, f.budget = ?, f.savings = ?, f.borrows = ?, f.lends = ?
+                                      WHERE f.month = ? AND f.id = uf.finance_id AND uf.user_id = ?");
+
+            $stmt->bind_param("iiiiisi", $income, $budget, $savings, $borrows, $lends, $month, $userId);
+            $stmt->execute();
+            $num_affected_rows = $stmt->affected_rows;
+            $stmt->close();
+            return $num_affected_rows > 0;
+        }
+
+
+    }
+
+    /**
+     * Fetching finance for month
+     * @param String $month
+     * @param int $userId
+     * @return String
+     */
+    public function getFinance($month, $userId) {
+        $stmt = $this->conn->prepare("SELECT f.id, f.month, f.income, f.budget, f.savings, f.borrows, f.lends from finance f, user_finance uf WHERE f.month = ? AND uf.finance_id = f.id AND uf.user_id = ?");
+        $stmt->bind_param("si", $month, $userId);
+        if ($stmt->execute()) {
+                $res = array();
+                $stmt->bind_result($id, $month, $income, $budget, $savings, $borrows, $lends);
+                $stmt->fetch();
+                $res["id"] = $id;
+                $res["month"] = $month;
+                $res["income"] = $income;
+                $res["budget"] = $budget;
+                $res["savings"] = $savings;
+                $res["borrows"] = $borrows;
+                $res["lends"] = $lends;
+                $stmt->close();
+                return $res;
+        } else {
+            return NULL;
+        }
+    }
+
+    /**
+     * Function to assign a finance to user
+     * @param String $userId
+     * @param String $financeId
+     */
+    public function createUserFinance($userId, $financeId) {
+        $stmt = $this->conn->prepare("INSERT INTO user_finance(user_id, finance_id) values(?, ?)");
+        $stmt->bind_param("ii", $userId, $financeId);
+        $result = $stmt->execute();
+
+        if (false === $result) {
+            die('execute() failed: ' . htmlspecialchars($stmt->error));
+        }
+        $stmt->close();
+        return $result;
+    }
+
     /* --------------------- 'Util' Methods ----------------------- */
 
     private function dynamicBindResults($stmt) {
