@@ -37,14 +37,14 @@
                     <div style="font-size: 14px">Today</div>
                     <div style="font-size: 12px">Expenses / Budget <span style="font-size: 16px">&#x20B9;</span></div>
                 </div>
-                <div style="font-size: 24px; margin-top: 10px">{{100| numShort}} / {{1200| numShort}}</div>
+                <div style="font-size: 24px; margin-top: 10px">{{financeMonthly.expensesToday| numShort}} / {{financeMonthly.budgetToday| numShort}}</div>
             </div>
             <div style="width: 45%; float: right; text-align: left;">
                 <div style="color: cadetblue;">
-                    <div style="font-size: 14px">February</div>
+                    <div style="font-size: 14px">{{month| date: 'MMMM'}}</div>
                     <div style="font-size: 12px">Expenses / Budget <span style="font-size: 16px">&#x20B9;</span></div>
                 </div>
-                <div style="font-size: 24px; margin-top: 10px">{{1000| numShort}} / {{12000| numShort}}</div>
+                <div style="font-size: 24px; margin-top: 10px">{{financeMonthly.expenses| numShort}} / {{financeMonthly.budget| numShort}}</div>
             </div>
         </ion-item>
         <!-- <ion-refresher on-refresh="refresh()"></ion-refresher> -->

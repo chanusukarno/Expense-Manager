@@ -88,7 +88,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     user.provider_name = emConstants.PROVIDER_FACEBOOK;
                     user.name = response.name;
                     user.email = response.email;
-                    if(response.gender) {
+                    if (response.gender) {
                         response.gender.toString().toLowerCase() === 'male' ? user.gender = 'M' : user.gender = 'F';
                     } else {
                         user.gender = '';
@@ -143,7 +143,7 @@ emApp.controller('welcomeCtrl', function ($scope, $state, $ionicModal, $cookieSt
                     user.provider_name = emConstants.PROVIDER_GOOGLE;
                     user.name = resp.displayName;
                     user.email = userEmail;
-                    if(resp.gender) {
+                    if (resp.gender) {
                         resp.gender.toString().toLowerCase() === 'male' ? user.gender = 'M' : user.gender = 'F';
                     } else {
                         user.gender = '';
@@ -258,7 +258,7 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
         if (!response.error) {
             // success finance
             console.log("GET FINANCE SUCCESS: " + angular.toJson(response));
-            response.range =  Math.floor((response.savings / response.income) * 100);
+            response.range = Math.floor((response.savings / response.income) * 100);
             setFinance(response);
         } else {
             console.log("GET FINANCE ERROR: " + angular.toJson(response));
@@ -319,6 +319,7 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
         var budget = fin.budget;
         var savings = fin.savings;
         var borrows = fin.borrows;
+        var expenses = fin.expenses;
         var lends = fin.lends;
         var range = fin.range;
 
@@ -338,6 +339,10 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
             return range;
         });
 
+        this.__defineGetter__("expenses", function () {
+            return expenses;
+        });
+
         this.__defineGetter__("borrows", function () {
             return borrows;
         });
@@ -349,13 +354,13 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
         this.__defineSetter__("range", function (val) {
             val = parseInt(val);
             range = val;
-            budget = (income / 100) * (100 - range);
+            budget = ((income / 100) * (100 - range)) + borrows - expenses;
             savings = (income / 100) * (range);
         });
 
         this.__defineSetter__("income", function (val) {
             income = val;
-            budget = (income / 100) * (100 - range);
+            budget = ((income / 100) * (100 - range)) + borrows - expenses;
             savings = (income / 100) * (range);
             $scope.isRangeDisabled = income === 0 ? true : false;
         });
@@ -368,8 +373,12 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
 
         this.__defineSetter__("savings", function (val) {
             savings = val;
-            budget = ($scope.finance.income - val) + $scope.finance.borrows;
+            budget = ($scope.finance.income - val) + borrows - expenses;
             range = Math.floor((val / income) * 100);
+        });
+
+        this.__defineSetter__("expenses", function (val) {
+            expenses = val;
         });
 
         this.__defineSetter__("borrows", function (val) {
@@ -392,11 +401,11 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
             title = "Set Income";
             btnText = "Set";
             $scope.data.title = $scope.finance.income;
-        } else if(type === 'budget') {
+        } else if (type === 'budget') {
             title = "Set Budget";
             btnText = "Set";
             $scope.data.title = $scope.finance.budget;
-        } else if(type === 'savings') {
+        } else if (type === 'savings') {
             title = "Set Savings";
             btnText = "Set";
             $scope.data.title = $scope.finance.savings;
@@ -419,9 +428,9 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
                         } else {
                             if (type === 'income') {
                                 $scope.finance.income = $scope.data.title;
-                            } else if(type === 'budget') {
+                            } else if (type === 'budget') {
                                 $scope.finance.budget = $scope.data.title;
-                            } else if(type === 'savings') {
+                            } else if (type === 'savings') {
                                 $scope.finance.savings = $scope.data.title;
                             }
                             return;
@@ -455,6 +464,67 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, emConstants, $i
     } catch (e) {
         console.log(e);
     }
+
+    function updateFinance() {
+
+        // set finance
+        var date = new Date(),
+            y = date.getFullYear(),
+            m = ("0" + (date.getMonth() + 1)).slice(-2);
+        var month = y + "-" + m + "-" + "01";
+
+        // set month
+        $scope.month = month;
+
+        emAPI.getFinance(month).success(function (response) {
+            if (!response.error) {
+                // success finance
+                console.log("GET FINANCE SUCCESS: " + angular.toJson(response));
+                response.range = Math.floor((response.savings / response.income) * 100);
+                setFinance(response);
+            } else {
+                console.log("GET FINANCE ERROR: " + angular.toJson(response));
+                var finance = {
+                    income: 0,
+                    savings: 0,
+                    budget: 0,
+                    expenses: 0,
+                    borrows: 0,
+                    lends: 0,
+                    range: 0
+                }
+
+                setFinance(finance);
+            }
+        }).error(function (e) {
+            console.log("GET FINANCE ERROR: " + e);
+        });
+
+        function setFinance(fin) {
+            $scope.financeMonthly = {};
+            $scope.financeMonthly.expenses = fin.expenses;
+            $scope.financeMonthly.budget = fin.budget + fin.expenses;
+
+            var _MS_PER_DAY = 1000 * 60 * 60 * 24;
+
+            // a and b are javascript Date objects
+            function dateDiffInDays(a, b) {
+                // Discard the time and time-zone information.
+                var utc1 = Date.UTC(a.getFullYear(), a.getMonth(), a.getDate());
+                var utc2 = Date.UTC(b.getFullYear(), b.getMonth(), b.getDate());
+
+                return Math.floor((utc2 - utc1) / _MS_PER_DAY);
+            }
+
+            var daysRemainingInCurMonth = dateDiffInDays(new Date(), new Date(date.getFullYear(), date.getMonth() + 1, 0));
+
+            $scope.financeMonthly.budgetToday = Math.floor(fin.budget / (daysRemainingInCurMonth + 1));
+            $scope.financeMonthly.expensesToday = 0 // TODO: need to calculate
+
+        }
+    }
+
+    updateFinance();
 
     // Menu popover for group options
     $ionicPopover.fromTemplateUrl('partials/modal/monthlyPopover.html', {
@@ -552,7 +622,7 @@ emApp.controller('ExpensesMonthlyCtrl', function ($scope, emAPI, emConstants, $i
     // Delete expense
     $scope.deleteExpense = function (expId) {
         $ionicListDelegate.closeOptionButtons();
-        console.log(angular.toJson("DELETE Expense ID" + expId));
+        console.log(angular.toJson("DELETE Expense ID: " + expId));
         emAPI.deleteExpense(expId).then(function (res) {
             if (!res.error) {
                 Toast.showToast('Expense Deleted!');

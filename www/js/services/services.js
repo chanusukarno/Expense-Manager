@@ -185,6 +185,9 @@ emApp.factory('emAPI', function ($http, $q, emConstants, $cookieStore) {
                     if (!validateResponse(result) && result.data.error) {
                         q.reject(new Error('Invalid Response'));
                     } else {
+                        if(result.data.error) {
+                            q.resolve(result.data);
+                        }
                         // update expense id
                         newExp.id = result.data.expenseId;
                         newExp.status = 0;

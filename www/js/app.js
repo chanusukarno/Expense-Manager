@@ -117,6 +117,7 @@ emApp.config(function ($stateProvider, $urlRouterProvider, $httpProvider) {
             }
         })
         .state('dashboard.finance', {
+            cache: false,
             url: "/finance",
             views: {
                 'menuContent': {

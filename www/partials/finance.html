@@ -5,8 +5,8 @@
     <ion-content>
         <div class="list">
             <div class="item item-divider">Finance for Month <span class="item-note"><i class="icon" style="font-size: 16px !important; margin-right: 5px;"> {{month| date: 'MMMM'}}</i></span></a></div>
-            <div class="item" ng-click="showEditPopup('income')">Net Income<span class="badge badge-calm">{{finance.income| numShort}}</span></div>
-            <div class="item" ng-click="showEditPopup('savings')">Savings Target<span class="badge badge-balanced">{{finance.savings| numShort}}</span></div>
+            <div class="item" ng-click="showEditPopup('income')">Net Income<span class="badge badge-calm">&#x20B9; {{finance.income| numShort}}</span></div>
+            <div class="item" ng-click="showEditPopup('savings')">Savings Target<span class="badge badge-balanced">&#x20B9; {{finance.savings| numShort}}</span></div>
             <div class="range range-balanced">
                 <input type="range" name="volume" min="0" max="100" ng-model="finance.range" ng-disabled="isRangeDisabled">
             </div>
@@ -14,10 +14,10 @@
                 <span>You save {{finance.range}}% of your Income!</span>
             </div>
 
-            <div class="item" style="background-color: #EFEFEF">Total Expenses<span class="badge badge-assertive">{{finance.expenses| numShort}}</span></div>
-            <div class="item" style="background-color: #EFEFEF">Budget Remaining<span class="badge badge-energized">{{finance.budget| numShort}}</span></div>
-            <div class="item" style="background-color: #EFEFEF">Borrows<span class="badge badge-energized">{{finance.borrows| numShort}}</span></div>
-            <div class="item" style="background-color: #EFEFEF">Lends<span class="badge badge-energized">{{finance.lends| numShort}}</span></div>
+            <div class="item" style="background-color: #F5F5F5">Total Expenses<span class="badge badge-assertive">&#x20B9; {{finance.expenses| numShort}}</span></div>
+            <div class="item" style="background-color: #F5F5F5">Budget Remaining<span class="badge badge-energized">&#x20B9; {{finance.budget| numShort}}</span></div>
+            <div class="item" style="background-color: #F5F5F5">Borrows<span class="badge badge-energized">&#x20B9; {{finance.borrows| numShort}}</span></div>
+            <div class="item" style="background-color: #F5F5F5">Lends<span class="badge badge-energized">&#x20B9; {{finance.lends| numShort}}</span></div>
 
             <!--<div class="item">Budget Benchmark<span class="badge badge-assertive">2K</span></div>-->
 
