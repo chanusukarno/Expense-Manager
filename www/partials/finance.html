@@ -4,7 +4,7 @@
     </ion-nav-buttons>
     <ion-content>
         <div class="list">
-            <div class="item item-divider">Finance for Month <span class="item-note"><i class="icon" style="font-size: 16px !important; margin-right: 5px;"> February</i></span></a></div>
+            <div class="item item-divider">Finance for Month <span class="item-note"><i class="icon" style="font-size: 16px !important; margin-right: 5px;"> {{month| date: 'MMMM'}}</i></span></a></div>
             <div class="item" ng-click="showEditPopup('income')">Net Income<span class="badge badge-calm">{{finance.income| numShort}}</span></div>
             <div class="item" ng-click="showEditPopup('savings')">Savings Target<span class="badge badge-balanced">{{finance.savings| numShort}}</span></div>
             <div class="range range-balanced">

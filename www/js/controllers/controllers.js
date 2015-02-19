@@ -251,10 +251,14 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
         m = ("0" + (date.getMonth() + 1)).slice(-2);
     var month = y + "-" + m + "-" + "01";
 
+    // set month
+    $scope.month = month;
+
     emAPI.getFinance(month).success(function (response) {
         if (!response.error) {
             // success finance
             console.log("GET FINANCE SUCCESS: " + angular.toJson(response));
+            response.range =  Math.floor((response.savings / response.income) * 100);
             setFinance(response);
         } else {
             console.log("GET FINANCE ERROR: " + angular.toJson(response));
@@ -276,7 +280,6 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
 
     // Set finance
     function setFinance(response) {
-        response.range =  Math.floor((response.savings / response.income) * 100);
         $scope.finance = new Finance(response);
         $scope.isRangeDisabled = $scope.finance.income === 0 ? true : false;
 
@@ -366,7 +369,7 @@ emApp.controller('financeCtrl', function ($scope, emAPI, $cookieStore, $ionicPop
         this.__defineSetter__("savings", function (val) {
             savings = val;
             budget = ($scope.finance.income - val) + $scope.finance.borrows;
-            range = Math.floor(100 - [(val / income) * 100]);
+            range = Math.floor((val / income) * 100);
         });
 
         this.__defineSetter__("borrows", function (val) {
